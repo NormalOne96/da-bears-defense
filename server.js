@@ -1,0 +1,1 @@
+const express=require('express'),path=require('path'),app=express(),PORT=process.env.PORT||3000;app.use(express.static(path.join(__dirname,'.')));app.get('/',(q,r)=>r.sendFile(path.join(__dirname,'index.html')));app.listen(PORT,'0.0.0.0',()=>console.log('Live on '+PORT));
