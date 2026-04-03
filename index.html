@@ -12,6 +12,7 @@
   --ui-bg:rgba(8,16,34,0.97);--ui-border:rgba(200,56,3,0.6);
   --panel-bg:rgba(11,22,42,0.98);--glass:rgba(255,255,255,0.04);
   --glass-b:rgba(255,255,255,0.08);--red:#FF2200;--green:#00CC44;
+  --purple:#9B59B6;--cyan:#00D4FF;
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 body{background:#000;color:var(--white);font-family:'Roboto Condensed',sans-serif;overflow:hidden;height:100dvh;width:100vw;user-select:none;-webkit-user-select:none;touch-action:none;}
@@ -33,6 +34,7 @@ body{background:#000;color:var(--white);font-family:'Roboto Condensed',sans-seri
 .btn-secondary{background:transparent;color:var(--gold);border:2px solid rgba(255,184,28,.5);font-family:'Bebas Neue',sans-serif;font-size:clamp(14px,3.8vw,19px);letter-spacing:3px;padding:10px 30px;border-radius:6px;cursor:pointer;transition:all .18s;min-width:210px;touch-action:manipulation;}
 .btn-secondary:hover,.btn-secondary:active{background:rgba(255,184,28,.15);border-color:var(--gold);}
 .title-best{font-family:'Oswald',sans-serif;font-size:11px;color:rgba(240,240,240,.35);letter-spacing:2px;margin-top:16px;text-align:center;}
+.title-version{font-family:'Oswald',sans-serif;font-size:10px;color:rgba(240,240,240,.2);letter-spacing:2px;margin-top:6px;}
 
 /* HOWTO */
 #howto-screen{position:fixed;inset:0;z-index:900;background:var(--navy);display:none;flex-direction:column;padding:20px;overflow-y:auto;background-image:radial-gradient(ellipse at 50% 0%,rgba(200,56,3,.2) 0%,transparent 50%);}
@@ -59,10 +61,15 @@ body{background:#000;color:var(--white);font-family:'Roboto Condensed',sans-seri
 #hud-wave-box{text-align:center;}
 #hud-wave-label{font-size:8px;color:rgba(240,240,240,.4);letter-spacing:1px;}
 #hud-wave-num{font-family:'Bebas Neue',sans-serif;font-size:clamp(16px,4.2vw,22px);color:var(--orange);letter-spacing:2px;}
-#speed-btn{background:rgba(255,255,255,.07);border:1px solid var(--glass-b);color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:13px;padding:6px 9px;border-radius:5px;cursor:pointer;touch-action:manipulation;min-width:38px;transition:all .15s;}
+#speed-btn,#pause-btn{background:rgba(255,255,255,.07);border:1px solid var(--glass-b);color:var(--white);font-family:'Bebas Neue',sans-serif;font-size:13px;padding:6px 9px;border-radius:5px;cursor:pointer;touch-action:manipulation;min-width:38px;transition:all .15s;}
 #speed-btn.fast{background:rgba(200,56,3,.25);border-color:var(--orange);color:var(--orange);}
 #speed-btn.turbo{background:rgba(255,184,28,.25);border-color:var(--gold);color:var(--gold);}
+#pause-btn.paused{background:rgba(255,50,50,.25);border-color:var(--red);color:var(--red);}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+/* WAVE PROGRESS BAR */
+#wave-progress{height:3px;background:rgba(255,255,255,.08);width:100%;flex-shrink:0;}
+#wave-progress-fill{height:100%;background:linear-gradient(90deg,var(--orange),var(--gold));width:0%;transition:width .3s;}
 
 /* BOSS BAR */
 #boss-bar-wrap{background:var(--ui-bg);border-bottom:1px solid rgba(255,0,0,.3);padding:3px 10px 4px;flex-shrink:0;display:none;backdrop-filter:blur(8px);}
@@ -82,6 +89,11 @@ body{background:#000;color:var(--white);font-family:'Roboto Condensed',sans-seri
 @keyframes waveAnn{0%{opacity:0;transform:translateX(-50%) scale(.6)}18%{opacity:1;transform:translateX(-50%) scale(1.08)}35%{transform:translateX(-50%) scale(1)}70%{opacity:1}100%{opacity:0;transform:translateX(-50%) translateY(-20px) scale(.95)}}
 #combo-display{position:absolute;top:8px;right:8px;font-family:'Bebas Neue',sans-serif;font-size:clamp(20px,5vw,32px);color:var(--gold);text-shadow:0 0 12px rgba(255,184,28,.8),2px 2px 0 #000;pointer-events:none;opacity:0;transition:opacity .3s;letter-spacing:2px;z-index:50;}
 #combo-display.show{opacity:1;}
+#kill-counter{position:absolute;top:8px;left:8px;font-family:'Bebas Neue',sans-serif;font-size:14px;color:rgba(255,255,255,.4);pointer-events:none;z-index:50;letter-spacing:1px;}
+
+/* PAUSE OVERLAY */
+#pause-overlay{position:absolute;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(4px);}
+#pause-overlay .pause-text{font-family:'Bebas Neue',sans-serif;font-size:clamp(36px,10vw,60px);color:var(--orange);letter-spacing:6px;text-shadow:0 0 40px rgba(200,56,3,.6);}
 
 /* TOWER PANEL */
 #tower-panel{background:var(--panel-bg);border-top:2px solid var(--ui-border);padding:7px 10px 6px;flex-shrink:0;z-index:10;backdrop-filter:blur(12px);box-shadow:0 -2px 16px rgba(0,0,0,.5);}
@@ -92,6 +104,8 @@ body{background:#000;color:var(--white);font-family:'Roboto Condensed',sans-seri
 .tower-card.selected{border-color:var(--gold);background:rgba(255,184,28,.14);box-shadow:0 0 14px rgba(255,184,28,.4);}
 .tower-card:active{transform:scale(.94);}
 .tower-card.unaffordable{opacity:.38;filter:grayscale(40%);}
+.tower-card.rarity-epic{border-color:rgba(155,89,182,.5);}
+.tower-card.rarity-legendary{border-color:rgba(255,184,28,.5);}
 .tower-emoji{font-size:20px;line-height:1;}
 .tower-name{font-family:'Oswald',sans-serif;font-size:8px;font-weight:700;color:var(--orange-lt);letter-spacing:.4px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:66px;}
 .tower-cost{font-family:'Bebas Neue',sans-serif;font-size:11px;color:var(--gold);margin-top:1px;}
@@ -175,7 +189,8 @@ body{background:#000;color:var(--white);font-family:'Roboto Condensed',sans-seri
 
 /* OVERLAYS */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:500;backdrop-filter:blur(4px);}
-.overlay-box{background:linear-gradient(160deg,rgba(11,22,42,.99) 0%,rgba(16,28,52,.99) 100%);border:2px solid var(--orange);border-radius:14px;padding:26px 34px;text-align:center;max-width:360px;width:92%;box-shadow:0 0 80px rgba(200,56,3,.35);}
+.overlay-box{background:linear-gradient(160deg,rgba(11,22,42,.99) 0%,rgba(16,28,52,.99) 100%);border:2px solid var(--orange);border-radius:14px;padding:26px 34px;text-align:center;max-width:360px;width:92%;box-shadow:0 0 80px rgba(200,56,3,.35);animation:overlayIn .4s ease-out;}
+@keyframes overlayIn{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
 .overlay-title{font-family:'Bebas Neue',sans-serif;font-size:46px;color:var(--orange);letter-spacing:4px;text-shadow:0 0 20px rgba(200,56,3,.5);}
 .overlay-sub{font-family:'Oswald',sans-serif;font-size:14px;color:var(--gold);letter-spacing:2px;margin:8px 0 16px;}
 .overlay-score-label{font-family:'Oswald',sans-serif;font-size:12px;color:rgba(240,240,240,.5);margin-bottom:2px;}
@@ -198,52 +213,70 @@ body{background:#000;color:var(--white);font-family:'Roboto Condensed',sans-seri
   <div class="title-lines"></div>
   <span class="title-bear">🐻</span>
   <div class="title-logo">DA BEARS<br><span>DEFENSE</span></div>
-  <div class="title-sub">⚡ Bear Down · Defend Soldier Field ⚡</div>
+  <div class="title-sub">BEAR DOWN - DEFEND SOLDIER FIELD</div>
   <div class="title-btns">
-    <button class="btn-primary" onclick="startGame()">▶ BEAR DOWN!</button>
-    <button class="btn-secondary" onclick="openStadiumBuilder()">🏟️ SOLDIER FIELD</button>
-    <button class="btn-secondary" onclick="showHowTo()">📖 HOW TO PLAY</button>
+    <button class="btn-primary" onclick="startGame()">BEAR DOWN!</button>
+    <button class="btn-secondary" onclick="openStadiumBuilder()">SOLDIER FIELD</button>
+    <button class="btn-secondary" onclick="showHowTo()">HOW TO PLAY</button>
   </div>
   <div class="title-best" id="title-best"></div>
+  <div class="title-version">v4.0 — LEGENDS EDITION — 16 TOWERS · 16 WAVES</div>
 </div>
 
 <!-- HOW TO PLAY -->
 <div id="howto-screen">
-  <h1>🐻 HOW TO PLAY</h1>
-  <div class="hsec"><h2>🏟️ OBJECTIVE</h2><p>Defend Soldier Field! Place Bears Legends as towers to stop NFL enemies. You have <b>20 lives</b> — bosses steal 3–8 if they break through. Build & upgrade Soldier Field between runs to earn permanent perks!</p></div>
-  <div class="hsec"><h2>🏗️ TOWERS</h2><ul><li>Select a tower card from the bottom tray</li><li>Tap any gold-tinted open tile to place it</li><li>Each tower has 3 upgrade levels</li><li>Tap a placed tower to see Upgrade, Sell, Target options</li></ul></div>
-  <div class="hsec"><h2>🏟️ SOLDIER FIELD BUILDER</h2><ul><li>Kill enemies to earn <b>Glory Points</b></li><li>Open the stadium from title or in-game (🏟️ button)</li><li>Spend Glory to build stadium sections — each grants <b>real gameplay perks</b></li><li>Perks persist across games! Build everything for the ultimate advantage</li></ul></div>
-  <div class="hsec"><h2>🏈 BEARS LEGENDS</h2><ul>
-    <li>🏈 <b>Sid Luckman</b> — Multi-shot QB, hits 2-3 targets</li>
-    <li>💨 <b>Walter Payton</b> — Ultra-fast, slows every hit</li>
-    <li>🎯 <b>Mike Ditka</b> — DA COACH, stuns enemies cold</li>
-    <li>🛡️ <b>Dick Butkus</b> — AoE ground pound</li>
-    <li>⚡ <b>Devin Hester</b> — Chain lightning, 3-10 enemies</li>
-    <li>🔥 <b>Brian Urlacher</b> — Massive AoE field bomb</li>
-    <li>💥 <b>Richard Dent</b> — Armor-piercing rounds</li>
-    <li>🐻 <b>William Perry</b> — Melee titan, AoE smash</li>
-    <li>🏹 <b>Johnny Morris</b> — Sniper, highest-HP target</li>
-    <li>⭐ <b>Gale Sayers</b> — Split shot on impact</li>
+  <h1>HOW TO PLAY</h1>
+  <div class="hsec"><h2>OBJECTIVE</h2><p>Defend Soldier Field! Place Bears Legends as towers to stop NFL enemies. You have <b>20 lives</b> — bosses steal 3-8 if they break through. Build & upgrade Soldier Field between runs to earn permanent perks!</p></div>
+  <div class="hsec"><h2>TOWERS (16 BEARS LEGENDS)</h2><ul><li>Select a tower card from the bottom tray</li><li>Tap any gold-tinted open tile to place it</li><li>Each tower has 3 upgrade levels</li><li>Tap a placed tower to see Upgrade, Sell, Target options</li><li>Some enemies are <b>stealthed</b> — only certain towers can see them!</li></ul></div>
+  <div class="hsec"><h2>SOLDIER FIELD BUILDER</h2><ul><li>Kill enemies to earn <b>Glory Points</b></li><li>Open the stadium from title or in-game button</li><li>Spend Glory to build stadium sections — each grants <b>real gameplay perks</b></li><li>Perks persist across games!</li></ul></div>
+  <div class="hsec"><h2>BEARS LEGENDS</h2><ul>
+    <li><b>Sid Luckman</b> — Multi-shot QB, hits 2-3 targets</li>
+    <li><b>Walter Payton</b> — Ultra-fast, slows every hit</li>
+    <li><b>Mike Ditka</b> — DA COACH, stuns enemies cold</li>
+    <li><b>Dick Butkus</b> — AoE ground pound</li>
+    <li><b>Devin Hester</b> — Chain lightning, 3-10 enemies</li>
+    <li><b>Brian Urlacher</b> — Massive AoE field bomb</li>
+    <li><b>Richard Dent</b> — Armor-piercing rounds</li>
+    <li><b>William Perry</b> — Melee titan, AoE smash</li>
+    <li><b>Johnny Morris</b> — Sniper, highest-HP target</li>
+    <li><b>Gale Sayers</b> — Split shot on impact</li>
+    <li><b>Mike Singletary</b> — Inspire aura, buffs nearby towers</li>
+    <li><b>Peanut Tillman</b> — Peanut Punch! Steals coins on hit</li>
+    <li><b>Dan Hampton</b> — Penetrating strikes, shreds armor</li>
+    <li><b>Lance Briggs</b> — Rapid-fire tackle machine</li>
+    <li><b>Doug Atkins</b> — Leaping strike, stuns + heavy damage</li>
+    <li><b>Gary Fencik</b> — Reveals stealth, long-range interception</li>
   </ul></div>
-  <div style="text-align:center;margin-top:16px;"><button class="btn-primary" onclick="hideHowTo()">← BACK</button></div>
+  <div class="hsec"><h2>ENEMY TYPES</h2><ul>
+    <li><b>Normal</b> — Standard enemies</li>
+    <li><b>Fast</b> — High speed, low HP</li>
+    <li><b>Armored</b> — Damage-resistant tanks</li>
+    <li><b>Stealth</b> — Invisible! Only Fencik and upgraded towers can see them</li>
+    <li><b>Healer</b> — Regenerates HP of nearby enemies</li>
+    <li><b>Splitter</b> — Splits into 2 smaller enemies on death</li>
+    <li><b>Boss</b> — Massive HP, devastating if they break through</li>
+  </ul></div>
+  <div style="text-align:center;margin-top:16px;"><button class="btn-primary" onclick="hideHowTo()">BACK</button></div>
 </div>
 
 <!-- GAME SCREEN -->
 <div id="game-screen">
   <div id="hud">
-    <div class="hud-stat"><span class="hud-icon">❤️</span><div class="hud-col"><div class="hud-val" id="hud-lives">20</div><div class="hud-lbl">Lives</div></div></div>
+    <div class="hud-stat"><span class="hud-icon">&#10084;&#65039;</span><div class="hud-col"><div class="hud-val" id="hud-lives">20</div><div class="hud-lbl">Lives</div></div></div>
     <div class="hud-div"></div>
-    <div class="hud-stat"><span class="hud-icon">🪙</span><div class="hud-col"><div class="hud-val" id="hud-coins">200</div><div class="hud-lbl">Coins</div></div></div>
+    <div class="hud-stat"><span class="hud-icon">&#129689;</span><div class="hud-col"><div class="hud-val" id="hud-coins">200</div><div class="hud-lbl">Coins</div></div></div>
     <div class="hud-div"></div>
-    <div class="hud-stat"><span class="hud-icon">⭐</span><div class="hud-col"><div class="hud-val" id="hud-glory">0</div><div class="hud-lbl">Glory</div></div></div>
+    <div class="hud-stat"><span class="hud-icon">&#11088;</span><div class="hud-col"><div class="hud-val" id="hud-glory">0</div><div class="hud-lbl">Glory</div></div></div>
     <div class="hud-div"></div>
-    <div id="hud-wave-box"><div id="hud-wave-label">WAVE</div><div id="hud-wave-num">1/12</div></div>
+    <div id="hud-wave-box"><div id="hud-wave-label">WAVE</div><div id="hud-wave-num">1/16</div></div>
     <div class="hud-div"></div>
-    <div class="hud-stat"><span class="hud-icon">🏆</span><div class="hud-col"><div class="hud-val" id="hud-score">0</div><div class="hud-lbl">Score</div></div></div>
+    <div class="hud-stat"><span class="hud-icon">&#127942;</span><div class="hud-col"><div class="hud-val" id="hud-score">0</div><div class="hud-lbl">Score</div></div></div>
     <div id="hud-right" style="display:flex;gap:5px;align-items:center;">
-      <button id="speed-btn" onclick="toggleSpeed()">⏩×1</button>
+      <button id="pause-btn" onclick="togglePause()">&#9208;&#65039;</button>
+      <button id="speed-btn" onclick="toggleSpeed()">&#9193;x1</button>
     </div>
   </div>
+  <div id="wave-progress"><div id="wave-progress-fill"></div></div>
   <div id="boss-bar-wrap">
     <div id="boss-bar-header"><div id="boss-name">BOSS</div><div id="boss-hp-text">0 / 0</div></div>
     <div id="boss-bar-bg"><div id="boss-bar-fill" style="width:100%"></div></div>
@@ -252,15 +285,17 @@ body{background:#000;color:var(--white);font-family:'Roboto Condensed',sans-seri
     <canvas id="gameCanvas"></canvas>
     <div id="wave-announce"></div>
     <div id="combo-display"></div>
+    <div id="kill-counter"></div>
+    <div id="pause-overlay"><div class="pause-text">PAUSED</div></div>
   </div>
   <div id="tower-panel">
     <div id="tower-scroll"><div id="tower-info"></div></div>
     <div id="action-bar">
-      <button class="action-btn" id="upgrade-btn" onclick="upgradeTower()">⬆ UPGRADE</button>
-      <button class="action-btn" id="target-btn" onclick="cycleTowerTarget()">🎯 FIRST</button>
-      <button class="action-btn" id="sell-btn" onclick="sellTower()">💰 SELL</button>
-      <button class="action-btn" id="stadium-btn" onclick="openStadiumBuilder()">🏟️ FIELD</button>
-      <button id="start-wave-btn" onclick="startWave()">🏈 START WAVE 1</button>
+      <button class="action-btn" id="upgrade-btn" onclick="upgradeTower()">UP</button>
+      <button class="action-btn" id="target-btn" onclick="cycleTowerTarget()">FIRST</button>
+      <button class="action-btn" id="sell-btn" onclick="sellTower()">SELL</button>
+      <button class="action-btn" id="stadium-btn" onclick="openStadiumBuilder()">FIELD</button>
+      <button id="start-wave-btn" onclick="startWave()">START WAVE 1</button>
     </div>
   </div>
 </div>
@@ -269,10 +304,10 @@ body{background:#000;color:var(--white);font-family:'Roboto Condensed',sans-seri
 <div id="stadium-screen">
   <div id="stadium-header">
     <div>
-      <h1>🏟️ SOLDIER FIELD</h1>
-      <div class="sf-glory">GLORY: <span id="sf-glory-val" style="color:var(--gold);">0</span> pts · TOTAL EARNED: <span id="sf-glory-total" style="color:var(--orange);">0</span></div>
+      <h1>SOLDIER FIELD</h1>
+      <div class="sf-glory">GLORY: <span id="sf-glory-val" style="color:var(--gold);">0</span> pts - TOTAL EARNED: <span id="sf-glory-total" style="color:var(--orange);">0</span></div>
     </div>
-    <button id="close-stadium" onclick="closeStadiumBuilder()">✕ CLOSE</button>
+    <button id="close-stadium" onclick="closeStadiumBuilder()">CLOSE</button>
   </div>
   <div id="stadium-body">
     <div id="stadium-preview-col">
@@ -285,12 +320,12 @@ body{background:#000;color:var(--white);font-family:'Roboto Condensed',sans-seri
         <div class="stat-box"><div class="sv" id="sf-stat-glory-spent">0</div><div class="sl">Glory Spent</div></div>
       </div>
       <div id="stadium-perks">
-        <h3>⚡ ACTIVE PERKS</h3>
+        <h3>ACTIVE PERKS</h3>
         <div id="sf-perk-list"></div>
       </div>
     </div>
     <div id="stadium-upgrades-col">
-      <h2>🏗️ BUILD</h2>
+      <h2>BUILD</h2>
       <div id="upg-list"></div>
       <div id="stadium-glory-bar">
         <div id="stadium-glory-label">GLORY TO NEXT LEVEL</div>
@@ -303,328 +338,321 @@ body{background:#000;color:var(--white);font-family:'Roboto Condensed',sans-seri
 <!-- WAVE CLEAR -->
 <div class="overlay" id="wc-overlay">
   <div class="overlay-box">
-    <div style="font-size:44px;margin-bottom:6px;" id="wc-emoji">✅</div>
+    <div style="font-size:44px;margin-bottom:6px;" id="wc-emoji"></div>
     <div class="overlay-title">WAVE CLEAR!</div>
     <div class="overlay-sub" id="wc-team"></div>
     <div id="wc-rewards"></div>
-    <button class="btn-primary" onclick="nextWave()">NEXT WAVE →</button>
-    <button class="btn-secondary" onclick="openStadiumBuilder()" style="margin-top:8px;">🏟️ BUILD STADIUM</button>
+    <button class="btn-primary" onclick="nextWave()">NEXT WAVE</button>
+    <button class="btn-secondary" onclick="openStadiumBuilder()" style="margin-top:8px;">BUILD STADIUM</button>
   </div>
 </div>
 
 <!-- GAME OVER -->
 <div class="overlay" id="go-overlay">
   <div class="overlay-box">
-    <div style="font-size:52px;margin-bottom:8px;">😢</div>
+    <div style="font-size:52px;margin-bottom:8px;">&#128546;</div>
     <div class="overlay-title">SOLDIER FIELD<br>HAS FALLEN</div>
     <div class="overlay-sub" id="go-info"></div>
     <div class="overlay-score-label">FINAL SCORE</div>
     <div class="overlay-score" id="go-score">0</div>
-    <button class="btn-primary" onclick="restartGame()">🔄 BEAR DOWN AGAIN</button>
-    <button class="btn-secondary" onclick="openStadiumBuilder()" style="margin-top:6px;">🏟️ BUILD STADIUM</button>
-    <button class="btn-secondary" onclick="showTitleScreen()" style="margin-top:6px;">🏠 MAIN MENU</button>
+    <button class="btn-primary" onclick="restartGame()">BEAR DOWN AGAIN</button>
+    <button class="btn-secondary" onclick="openStadiumBuilder()" style="margin-top:6px;">BUILD STADIUM</button>
+    <button class="btn-secondary" onclick="showTitleScreen()" style="margin-top:6px;">MAIN MENU</button>
   </div>
 </div>
 
 <!-- VICTORY -->
 <div class="overlay" id="vic-overlay">
   <div class="overlay-box">
-    <div style="font-size:50px;margin-bottom:8px;">🏆🐻🏆</div>
+    <div style="font-size:50px;margin-bottom:8px;">&#127942;&#128059;&#127942;</div>
     <div class="overlay-title" style="color:var(--gold);">BEAR DOWN!</div>
     <div class="overlay-sub" style="color:var(--orange);">SOLDIER FIELD DEFENDED!</div>
     <div class="overlay-score-label">FINAL SCORE</div>
     <div class="overlay-score" id="vic-score">0</div>
-    <button class="btn-primary" onclick="restartGame()">🔄 PLAY AGAIN</button>
-    <button class="btn-secondary" onclick="openStadiumBuilder()" style="margin-top:6px;">🏟️ UPGRADE STADIUM</button>
-    <button class="btn-secondary" onclick="showTitleScreen()" style="margin-top:6px;">🏠 MAIN MENU</button>
+    <button class="btn-primary" onclick="restartGame()">PLAY AGAIN</button>
+    <button class="btn-secondary" onclick="openStadiumBuilder()" style="margin-top:6px;">UPGRADE STADIUM</button>
+    <button class="btn-secondary" onclick="showTitleScreen()" style="margin-top:6px;">MAIN MENU</button>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-//  DA BEARS DEFENSE v3.0 — SOLDIER FIELD EDITION
-// ═══════════════════════════════════════════════════════════════
-
+// DA BEARS DEFENSE v4.0 — LEGENDS EDITION
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-// ── GAME STATE ──────────────────────────────────────────────
+// GAME STATE
 let G = {
   lives:20, coins:200, wave:1, score:0, glory:0,
-  running:false, waveActive:false, speed:1,
+  running:false, waveActive:false, speed:1, paused:false,
   selectedTowerType:null, selectedPlacedTower:null,
   tileSize:40, cols:0, rows:0,
   towers:[], enemies:[], projectiles:[],
-  particles:[], floaters:[],
+  particles:[], floaters:[], trails:[],
   path:[], pathSet:new Set(), placedSet:new Set(),
   spawnQueue:[], spawnTimer:0, spawnInterval:55,
   enemiesRemaining:0, frameCount:0,
   animFrame:null, lastTime:0,
-  combo:0, comboTimer:0,
-  totalWaves:12,
+  combo:0, comboTimer:0, totalKills:0,
+  totalWaves:16,
+  screenShake:{x:0,y:0,intensity:0},
 };
 
-// ── STADIUM STATE (persists via localStorage) ────────────────
-let SF = {
-  glory:0,        // spendable
-  totalGlory:0,   // all-time earned
-  sections:{},    // { sectionId: level }
-};
+// STADIUM STATE
+let SF = { glory:0, totalGlory:0, sections:{} };
 
-// ── STADIUM UPGRADES DEFINITION ─────────────────────────────
+// STADIUM UPGRADES
 const STADIUM_UPGRADES = [
-  // FOUNDATION
-  { id:'foundation',      cat:'Foundation', name:'Concrete Foundation', emoji:'🏗️',
-    maxLevel:4, baseCost:80, costMult:2.2,
+  {id:'foundation',cat:'Foundation',name:'Concrete Foundation',emoji:'&#127959;',maxLevel:4,baseCost:80,costMult:2.2,
     desc:['Reinforce the base — +1 starting life','Tougher concrete — +2 lives, +25 start coins','Steel rebar — +3 lives, enemy HP -5%','Blast-proof base — +5 lives, start coins +75'],
-    perks:['startLives',0,'startLives',0,'enemyHpMult',0,'startCoins',0],
-  },
-  { id:'locker_room',     cat:'Foundation', name:'Bears Locker Room', emoji:'🏈',
-    maxLevel:3, baseCost:100, costMult:2.0,
+    perks:['startLives',0,'startLives',0,'enemyHpMult',0,'startCoins',0]},
+  {id:'locker_room',cat:'Foundation',name:'Bears Locker Room',emoji:'&#127944;',maxLevel:3,baseCost:100,costMult:2.0,
     desc:['Bear Down pregame speech — tower damage +5%','Legendary motivation — +8% damage','Halas speech — ALL towers +12% damage'],
-    perks:['towerDamageMult',0,'towerDamageMult',0,'towerDamageMult',0],
-  },
-  { id:'field_turf',      cat:'Foundation', name:'Premium Field Turf', emoji:'🌿',
-    maxLevel:3, baseCost:60, costMult:1.8,
-    desc:['Quality turf — enemy speed -5%','Championship turf — enemy speed -8%','Soldier Field turf — enemy speed -12%, slippery'],
-    perks:['enemySpeedMult',0,'enemySpeedMult',0,'enemySpeedMult',0],
-  },
-
-  // STANDS
-  { id:'south_stands',    cat:'Stands', name:'South End Zone Stands', emoji:'🏟️',
-    maxLevel:4, baseCost:120, costMult:2.0,
+    perks:['towerDamageMult',0,'towerDamageMult',0,'towerDamageMult',0]},
+  {id:'field_turf',cat:'Foundation',name:'Premium Field Turf',emoji:'&#127807;',maxLevel:3,baseCost:60,costMult:1.8,
+    desc:['Quality turf — enemy speed -5%','Championship turf — enemy speed -8%','Soldier Field turf — enemy speed -12%'],
+    perks:['enemySpeedMult',0,'enemySpeedMult',0,'enemySpeedMult',0]},
+  {id:'south_stands',cat:'Stands',name:'South End Zone Stands',emoji:'&#127967;',maxLevel:4,baseCost:120,costMult:2.0,
     desc:['Build 5,000-seat south stands','Expand to 12,000 seats — +8 coins/kill','Add luxury boxes — +15 coins/kill','Full south stadium — coin rewards +25%'],
-    perks:['coinBonus',0,'coinBonus',0,'coinBonus',0,'coinMult',0],
-  },
-  { id:'north_stands',    cat:'Stands', name:'North End Zone Stands', emoji:'🏟️',
-    maxLevel:4, baseCost:120, costMult:2.0,
-    desc:['Build north end zone','Expand seating — enemy reward +10%','Premium north section — extra wave bonus','Full north stadium — wave clear coins ×1.5'],
-    perks:['coinBonus',0,'rewardMult',0,'waveBonus',0,'waveCoinMult',0],
-  },
-  { id:'press_box',       cat:'Stands', name:'Press Box & Jumbotron', emoji:'📺',
-    maxLevel:3, baseCost:150, costMult:2.2,
-    desc:['Install press box — see all enemy HP bars','Add Jumbotron — boss warning 3s early','Full media setup — combo kills ×1.5 coins'],
-    perks:['showHpBars',0,'bossWarning',0,'comboMult',0],
-  },
-
-  // DEFENSE
-  { id:'bear_statues',    cat:'Defense', name:'Bear Statues at Gates', emoji:'🐻',
-    maxLevel:4, baseCost:140, costMult:2.1,
+    perks:['coinBonus',0,'coinBonus',0,'coinBonus',0,'coinMult',0]},
+  {id:'north_stands',cat:'Stands',name:'North End Zone Stands',emoji:'&#127967;',maxLevel:4,baseCost:120,costMult:2.0,
+    desc:['Build north end zone','Expand seating — enemy reward +10%','Premium north section — extra wave bonus','Full north stadium — wave clear coins x1.5'],
+    perks:['coinBonus',0,'rewardMult',0,'waveBonus',0,'waveCoinMult',0]},
+  {id:'press_box',cat:'Stands',name:'Press Box & Jumbotron',emoji:'&#128250;',maxLevel:3,baseCost:150,costMult:2.2,
+    desc:['Install press box — see all enemy HP bars','Add Jumbotron — boss warning 3s early','Full media setup — combo kills x1.5 coins'],
+    perks:['showHpBars',0,'bossWarning',0,'comboMult',0]},
+  {id:'bear_statues',cat:'Defense',name:'Bear Statues at Gates',emoji:'&#128059;',maxLevel:4,baseCost:140,costMult:2.1,
     desc:['Bronze bears — +5% all tower range','Iron bears — +10% range','Steel bears — +15% range, tower cost -5%','Gold bears — +20% range, tower cost -10%'],
-    perks:['rangeMult',0,'rangeMult',0,'rangeMult',0,'towerCostMult',0],
-  },
-  { id:'fog_cannons',     cat:'Defense', name:'Fog Cannons (Lake Effect)', emoji:'🌫️',
-    maxLevel:3, baseCost:180, costMult:2.0,
+    perks:['rangeMult',0,'rangeMult',0,'rangeMult',0,'towerCostMult',0]},
+  {id:'fog_cannons',cat:'Defense',name:'Fog Cannons (Lake Effect)',emoji:'&#127787;',maxLevel:3,baseCost:180,costMult:2.0,
     desc:['Lake-effect fog — enemies enter slowed','Heavy fog — slow on entry lasts +1s','Chicago blizzard — ALL enemies slow on spawn'],
-    perks:['entrySlowDur',0,'entrySlowDur',0,'entrySlowAll',0],
-  },
-  { id:'wind_tunnel',     cat:'Defense', name:'Soldier Field Wind Tunnel', emoji:'💨',
-    maxLevel:3, baseCost:160, costMult:2.0,
+    perks:['entrySlowDur',0,'entrySlowDur',0,'entrySlowAll',0]},
+  {id:'wind_tunnel',cat:'Defense',name:'Soldier Field Wind Tunnel',emoji:'&#128168;',maxLevel:3,baseCost:160,costMult:2.0,
     desc:['Lake wind — ranged attacks +10% speed','Chicago wind — projectile speed +18%','Polar vortex — projectiles pierce 1 extra enemy'],
-    perks:['projectileSpeed',0,'projectileSpeed',0,'projectilePierce',0],
-  },
-
-  // CONCOURSE
-  { id:'hot_dogs',        cat:'Concourse', name:"Portillo's Hot Dogs Stand", emoji:'🌭',
-    maxLevel:3, baseCost:90, costMult:1.8,
-    desc:['Open hot dog stand — +30 bonus coins each wave','Premium menu — +55 wave coins','Portillo\'s full menu — +80 wave coins, lives +2'],
-    perks:['waveBonus',0,'waveBonus',0,'startLives',0],
-  },
-  { id:'bear_merch',      cat:'Concourse', name:'Bears Merchandise Store', emoji:'🧢',
-    maxLevel:3, baseCost:80, costMult:1.8,
-    desc:['Open merch stand — earn 5% more coins per kill','Expand store — 10% more coins per kill','Bears flagship store — 15% coins + sell towers for 70%'],
-    perks:['coinMult',0,'coinMult',0,'sellRefund',0],
-  },
-  { id:'hall_of_fame',    cat:'Concourse', name:'Bears Hall of Fame', emoji:'🏆',
-    maxLevel:4, baseCost:200, costMult:2.3,
+    perks:['projectileSpeed',0,'projectileSpeed',0,'projectilePierce',0]},
+  {id:'hot_dogs',cat:'Concourse',name:"Portillo's Hot Dogs Stand",emoji:'&#127789;',maxLevel:3,baseCost:90,costMult:1.8,
+    desc:['Open hot dog stand — +30 bonus coins each wave','Premium menu — +55 wave coins','Full menu — +80 wave coins, lives +2'],
+    perks:['waveBonus',0,'waveBonus',0,'startLives',0]},
+  {id:'bear_merch',cat:'Concourse',name:'Bears Merchandise Store',emoji:'&#129506;',maxLevel:3,baseCost:80,costMult:1.8,
+    desc:['Open merch stand — earn 5% more coins per kill','Expand store — 10% more coins per kill','Flagship store — 15% coins + sell towers for 70%'],
+    perks:['coinMult',0,'coinMult',0,'sellRefund',0]},
+  {id:'hall_of_fame',cat:'Concourse',name:'Bears Hall of Fame',emoji:'&#127942;',maxLevel:4,baseCost:200,costMult:2.3,
     desc:['Open Hall of Fame — 1 random tower buffed each wave','Expand gallery — 2 towers buffed each wave','Legends wing — all Lv3 towers do +20% damage','Full HOF — game starts with 1 random free tower'],
-    perks:['waveBuffTowers',0,'waveBuffTowers',0,'legendDamage',0,'freeTower',0],
-  },
-
-  // FORTRESS
-  { id:'bear_wall',       cat:'Fortress', name:'The Bear Wall', emoji:'🧱',
-    maxLevel:4, baseCost:250, costMult:2.2,
-    desc:['Build perimeter wall — bosses deal -1 life on breach','Reinforce wall — boss breach -2 lives','Electrify wall — bosses take 200 damage on entry','Fortress wall — enemies hitting end zone -50% HP penalty'],
-    perks:['bossBreachLives',0,'bossBreachLives',0,'bossEntryDmg',0,'endZonePenalty',0],
-  },
-  { id:'cannon_towers',   cat:'Fortress', name:'Corner Cannon Towers', emoji:'💣',
-    maxLevel:3, baseCost:300, costMult:2.2,
+    perks:['waveBuffTowers',0,'waveBuffTowers',0,'legendDamage',0,'freeTower',0]},
+  {id:'bear_wall',cat:'Fortress',name:'The Bear Wall',emoji:'&#129521;',maxLevel:4,baseCost:250,costMult:2.2,
+    desc:['Build perimeter wall — bosses deal -1 life on breach','Reinforce wall — boss breach -2 lives','Electrify wall — bosses take 200 damage on entry','Fortress wall — enemies at end zone -50% HP'],
+    perks:['bossBreachLives',0,'bossBreachLives',0,'bossEntryDmg',0,'endZonePenalty',0]},
+  {id:'cannon_towers',cat:'Fortress',name:'Corner Cannon Towers',emoji:'&#128163;',maxLevel:3,baseCost:300,costMult:2.2,
     desc:['Install corner cannons — AoE blast at wave start','Double cannons — 2 blasts at wave start','Mega cannons — 3 blasts, each hits ALL enemies for 80 dmg'],
-    perks:['waveStartBlast',0,'waveStartBlast',0,'waveStartBlast',0],
-  },
-  { id:'moat',            cat:'Fortress', name:'Defensive Moat (Lake Michigan)', emoji:'🌊',
-    maxLevel:3, baseCost:280, costMult:2.1,
+    perks:['waveStartBlast',0,'waveStartBlast',0,'waveStartBlast',0]},
+  {id:'moat',cat:'Fortress',name:'Defensive Moat (Lake Michigan)',emoji:'&#127754;',maxLevel:3,baseCost:280,costMult:2.1,
     desc:['Dig moat — enemies slow -15% when near end zone','Deepen moat — slow -25%, AoE splash on entry','Lake Michigan moat — enemies drown for 3s entering end zone'],
-    perks:['endZoneSlow',0,'endZoneSlow',0,'endZoneDrown',0],
-  },
-
-  // LEGEND SHRINES
-  { id:'payton_shrine',   cat:'Legend Shrines', name:"Sweetness Shrine (Payton)", emoji:'💨',
-    maxLevel:3, baseCost:200, costMult:2.5,
+    perks:['endZoneSlow',0,'endZoneSlow',0,'endZoneDrown',0]},
+  {id:'payton_shrine',cat:'Legend Shrines',name:"Sweetness Shrine (Payton)",emoji:'&#128168;',maxLevel:3,baseCost:200,costMult:2.5,
     desc:['Payton shrine — all slow towers +20% duration','Enhanced shrine — slow towers +35% duration + range','Legendary shrine — slow effect chains to nearby enemies'],
-    perks:['slowDurMult',0,'slowDurMult',0,'slowChain',0],
-  },
-  { id:'urlacher_shrine', cat:'Legend Shrines', name:"54 Shrine (Urlacher)", emoji:'🔥',
-    maxLevel:3, baseCost:220, costMult:2.5,
+    perks:['slowDurMult',0,'slowDurMult',0,'slowChain',0]},
+  {id:'urlacher_shrine',cat:'Legend Shrines',name:"54 Shrine (Urlacher)",emoji:'&#128293;',maxLevel:3,baseCost:220,costMult:2.5,
     desc:['Urlacher shrine — AoE towers +15% radius','Enhanced shrine — AoE +25% radius, +10% dmg','Legendary shrine — AoE towers occasionally stun 1s'],
-    perks:['aoeMult',0,'aoeMult',0,'aoeStun',0],
-  },
-  { id:'dent_shrine',     cat:'Legend Shrines', name:"95 Shrine (Dent)", emoji:'💥',
-    maxLevel:3, baseCost:210, costMult:2.5,
+    perks:['aoeMult',0,'aoeMult',0,'aoeStun',0]},
+  {id:'dent_shrine',cat:'Legend Shrines',name:"95 Shrine (Dent)",emoji:'&#128165;',maxLevel:3,baseCost:210,costMult:2.5,
     desc:['Dent shrine — ALL towers ignore 5 armor','Enhanced shrine — ignore 15 armor','Legendary shrine — 10% chance to instantly destroy non-boss'],
-    perks:['armorPen',0,'armorPen',0,'instantKillChance',0],
-  },
-  { id:'ditka_shrine',    cat:'Legend Shrines', name:"DA COACH Shrine (Ditka)", emoji:'🎯',
-    maxLevel:3, baseCost:190, costMult:2.5,
+    perks:['armorPen',0,'armorPen',0,'instantKillChance',0]},
+  {id:'ditka_shrine',cat:'Legend Shrines',name:"DA COACH Shrine (Ditka)",emoji:'&#127919;',maxLevel:3,baseCost:190,costMult:2.5,
     desc:["DA COACH's voice — stun towers +15% chance","Legendary stun — 25% chance, lasts 50% longer","DA SPEECH — 5% chance stun hits ALL enemies on screen"],
-    perks:['stunChanceMult',0,'stunChanceMult',0,'globalStunChance',0],
-  },
+    perks:['stunChanceMult',0,'stunChanceMult',0,'globalStunChance',0]},
 ];
 
-// ── PERK LABELS (human-readable) ───────────────────────────
 const PERK_LABELS = {
-  startLives: (v) => `+${v} Starting Lives`,
-  startCoins: (v) => `+${v} Starting Coins`,
-  towerDamageMult: (v) => `All Tower Damage +${Math.round((v-1)*100)}%`,
-  enemyHpMult: (v) => `Enemy HP -${Math.round((1-v)*100)}%`,
-  enemySpeedMult: (v) => `Enemy Speed -${Math.round((1-v)*100)}%`,
-  coinBonus: (v) => `+${v} Coins/Kill`,
-  coinMult: (v) => `Coin Rewards ×${v.toFixed(2)}`,
-  rewardMult: (v) => `Kill Rewards +${Math.round((v-1)*100)}%`,
-  waveBonus: (v) => `+${v} Wave Clear Coins`,
-  waveCoinMult: (v) => `Wave Clear Coins ×${v.toFixed(1)}`,
-  showHpBars: () => `All Enemy HP Bars Visible`,
-  bossWarning: () => `Boss Approach Warning`,
-  comboMult: (v) => `Combo Coins ×${v.toFixed(1)}`,
-  rangeMult: (v) => `All Tower Range +${Math.round((v-1)*100)}%`,
-  towerCostMult: (v) => `Tower Costs -${Math.round((1-v)*100)}%`,
-  entrySlowDur: (v) => `Entry Slow +${v}s`,
-  entrySlowAll: () => `All Enemies Spawn Slowed`,
-  projectileSpeed: (v) => `Projectile Speed +${Math.round((v-1)*100)}%`,
-  projectilePierce: () => `Projectiles Pierce +1 Enemy`,
-  sellRefund: (v) => `Sell Towers for ${Math.round(v*100)}%`,
-  waveBuffTowers: (v) => `${v} Random Tower(s) Buffed/Wave`,
-  legendDamage: (v) => `Lv3 Towers +${Math.round((v-1)*100)}% Damage`,
-  freeTower: () => `Free Random Tower at Start`,
-  bossBreachLives: (v) => `Boss Breach -${v} Lives`,
-  bossEntryDmg: (v) => `Bosses Take ${v} Entry Damage`,
-  endZonePenalty: () => `End Zone Weakens Enemies`,
-  waveStartBlast: (v) => `${v} AoE Blast(s) at Wave Start`,
-  endZoneSlow: (v) => `End Zone Slow -${Math.round(v*100)}%`,
-  endZoneDrown: () => `End Zone Drowns Enemies 3s`,
-  slowDurMult: (v) => `Slow Duration ×${v.toFixed(1)}`,
-  slowChain: () => `Slow Chains to Nearby Enemies`,
-  aoeMult: (v) => `AoE Radius ×${v.toFixed(2)}`,
-  aoeStun: () => `AoE Towers: Chance to Stun`,
-  armorPen: (v) => `All Towers: Ignore ${v} Armor`,
-  instantKillChance: (v) => `${Math.round(v*100)}% Instant Kill Chance`,
-  stunChanceMult: (v) => `Stun Chance +${Math.round((v-1)*100)}%`,
-  globalStunChance: (v) => `${Math.round(v*100)}% Global Stun on Screen`,
+  startLives:(v)=>`+${v} Starting Lives`, startCoins:(v)=>`+${v} Starting Coins`,
+  towerDamageMult:(v)=>`All Tower Damage +${Math.round((v-1)*100)}%`,
+  enemyHpMult:(v)=>`Enemy HP -${Math.round((1-v)*100)}%`, enemySpeedMult:(v)=>`Enemy Speed -${Math.round((1-v)*100)}%`,
+  coinBonus:(v)=>`+${v} Coins/Kill`, coinMult:(v)=>`Coin Rewards x${v.toFixed(2)}`,
+  rewardMult:(v)=>`Kill Rewards +${Math.round((v-1)*100)}%`, waveBonus:(v)=>`+${v} Wave Clear Coins`,
+  waveCoinMult:(v)=>`Wave Clear Coins x${v.toFixed(1)}`, showHpBars:()=>`All Enemy HP Bars Visible`,
+  bossWarning:()=>`Boss Approach Warning`, comboMult:(v)=>`Combo Coins x${v.toFixed(1)}`,
+  rangeMult:(v)=>`All Tower Range +${Math.round((v-1)*100)}%`,
+  towerCostMult:(v)=>`Tower Costs -${Math.round((1-v)*100)}%`,
+  entrySlowDur:(v)=>`Entry Slow +${v}s`, entrySlowAll:()=>`All Enemies Spawn Slowed`,
+  projectileSpeed:(v)=>`Projectile Speed +${Math.round((v-1)*100)}%`,
+  projectilePierce:()=>`Projectiles Pierce +1 Enemy`, sellRefund:(v)=>`Sell Towers for ${Math.round(v*100)}%`,
+  waveBuffTowers:(v)=>`${v} Random Tower(s) Buffed/Wave`,
+  legendDamage:(v)=>`Lv3 Towers +${Math.round((v-1)*100)}% Damage`, freeTower:()=>`Free Random Tower at Start`,
+  bossBreachLives:(v)=>`Boss Breach -${v} Lives`, bossEntryDmg:(v)=>`Bosses Take ${v} Entry Damage`,
+  endZonePenalty:()=>`End Zone Weakens Enemies`, waveStartBlast:(v)=>`${v} AoE Blast(s) at Wave Start`,
+  endZoneSlow:(v)=>`End Zone Slow -${Math.round(v*100)}%`, endZoneDrown:()=>`End Zone Drowns Enemies 3s`,
+  slowDurMult:(v)=>`Slow Duration x${v.toFixed(1)}`, slowChain:()=>`Slow Chains to Nearby Enemies`,
+  aoeMult:(v)=>`AoE Radius x${v.toFixed(2)}`, aoeStun:()=>`AoE Towers: Chance to Stun`,
+  armorPen:(v)=>`All Towers: Ignore ${v} Armor`, instantKillChance:(v)=>`${Math.round(v*100)}% Instant Kill Chance`,
+  stunChanceMult:(v)=>`Stun Chance +${Math.round((v-1)*100)}%`, globalStunChance:(v)=>`${Math.round(v*100)}% Global Stun on Screen`,
 };
 
-// ── COMPUTED PERKS (derived from SF.sections) ────────────────
-function computePerks() {
-  const P = {
-    startLives:0, startCoins:0,
-    towerDamageMult:1, enemyHpMult:1, enemySpeedMult:1,
-    coinBonus:0, coinMult:1, rewardMult:1,
-    waveBonus:0, waveCoinMult:1,
-    showHpBars:false, bossWarning:false, comboMult:1,
-    rangeMult:1, towerCostMult:1,
-    entrySlowDur:0, entrySlowAll:false,
-    projectileSpeed:1, projectilePierce:false,
-    sellRefund:0.6,
-    waveBuffTowers:0, legendDamage:1, freeTower:false,
-    bossBreachLives:0, bossEntryDmg:0, endZonePenalty:false,
-    waveStartBlast:0, endZoneSlow:0, endZoneDrown:false,
-    slowDurMult:1, slowChain:false,
-    aoeMult:1, aoeStun:false,
-    armorPen:0, instantKillChance:0,
-    stunChanceMult:1, globalStunChance:0,
+function computePerks(){
+  const P={startLives:0,startCoins:0,towerDamageMult:1,enemyHpMult:1,enemySpeedMult:1,
+    coinBonus:0,coinMult:1,rewardMult:1,waveBonus:0,waveCoinMult:1,showHpBars:false,bossWarning:false,comboMult:1,
+    rangeMult:1,towerCostMult:1,entrySlowDur:0,entrySlowAll:false,projectileSpeed:1,projectilePierce:false,
+    sellRefund:0.6,waveBuffTowers:0,legendDamage:1,freeTower:false,bossBreachLives:0,bossEntryDmg:0,
+    endZonePenalty:false,waveStartBlast:0,endZoneSlow:0,endZoneDrown:false,slowDurMult:1,slowChain:false,
+    aoeMult:1,aoeStun:false,armorPen:0,instantKillChance:0,stunChanceMult:1,globalStunChance:0};
+  const perkData={
+    foundation:[[],['startLives',1],['startLives',2,'startCoins',25],['enemyHpMult',.95],['startLives',5,'startCoins',75]],
+    locker_room:[[],['towerDamageMult',1.05],['towerDamageMult',1.08],['towerDamageMult',1.12]],
+    field_turf:[[],['enemySpeedMult',.95],['enemySpeedMult',.92],['enemySpeedMult',.88]],
+    south_stands:[[],['coinBonus',5],['coinBonus',8],['coinBonus',15],['coinMult',1.25]],
+    north_stands:[[],['coinBonus',5],['rewardMult',1.1],['waveBonus',40],['waveCoinMult',1.5]],
+    press_box:[[],['showHpBars',true],['bossWarning',true],['comboMult',1.5]],
+    bear_statues:[[],['rangeMult',1.05],['rangeMult',1.1],['rangeMult',1.15,'towerCostMult',.95],['rangeMult',1.2,'towerCostMult',.9]],
+    fog_cannons:[[],['entrySlowDur',1],['entrySlowDur',2],['entrySlowAll',true]],
+    wind_tunnel:[[],['projectileSpeed',1.1],['projectileSpeed',1.18],['projectilePierce',true]],
+    hot_dogs:[[],['waveBonus',30],['waveBonus',55],['waveBonus',80,'startLives',2]],
+    bear_merch:[[],['coinMult',1.05],['coinMult',1.1],['coinMult',1.15,'sellRefund',.7]],
+    hall_of_fame:[[],['waveBuffTowers',1],['waveBuffTowers',2],['legendDamage',1.2],['freeTower',true]],
+    bear_wall:[[],['bossBreachLives',1],['bossBreachLives',2],['bossEntryDmg',200],['endZonePenalty',true]],
+    cannon_towers:[[],['waveStartBlast',1],['waveStartBlast',2],['waveStartBlast',3]],
+    moat:[[],['endZoneSlow',.15],['endZoneSlow',.25],['endZoneDrown',true]],
+    payton_shrine:[[],['slowDurMult',1.2],['slowDurMult',1.35],['slowChain',true]],
+    urlacher_shrine:[[],['aoeMult',1.15],['aoeMult',1.25],['aoeStun',true]],
+    dent_shrine:[[],['armorPen',5],['armorPen',15],['instantKillChance',.1]],
+    ditka_shrine:[[],['stunChanceMult',1.15],['stunChanceMult',1.25],['globalStunChance',.05]],
   };
-
-  STADIUM_UPGRADES.forEach(upg => {
-    const lvl = SF.sections[upg.id] || 0;
-    if (!lvl) return;
-    // Apply each level's perk cumulatively
-    const perkData = {
-      foundation:     [[],['startLives',1],['startLives',2,'startCoins',25],['enemyHpMult',.95],['startLives',5,'startCoins',75]],
-      locker_room:    [[],['towerDamageMult',1.05],['towerDamageMult',1.08],['towerDamageMult',1.12]],
-      field_turf:     [[],['enemySpeedMult',.95],['enemySpeedMult',.92],['enemySpeedMult',.88]],
-      south_stands:   [[],['coinBonus',5],['coinBonus',8],['coinBonus',15],['coinMult',1.25]],
-      north_stands:   [[],['coinBonus',5],['rewardMult',1.1],['waveBonus',40],['waveCoinMult',1.5]],
-      press_box:      [[],['showHpBars',true],['bossWarning',true],['comboMult',1.5]],
-      bear_statues:   [[],['rangeMult',1.05],['rangeMult',1.1],['rangeMult',1.15,'towerCostMult',.95],['rangeMult',1.2,'towerCostMult',.9]],
-      fog_cannons:    [[],['entrySlowDur',1],['entrySlowDur',2],['entrySlowAll',true]],
-      wind_tunnel:    [[],['projectileSpeed',1.1],['projectileSpeed',1.18],['projectilePierce',true]],
-      hot_dogs:       [[],['waveBonus',30],['waveBonus',55],['waveBonus',80,'startLives',2]],
-      bear_merch:     [[],['coinMult',1.05],['coinMult',1.1],['coinMult',1.15,'sellRefund',.7]],
-      hall_of_fame:   [[],['waveBuffTowers',1],['waveBuffTowers',2],['legendDamage',1.2],['freeTower',true]],
-      bear_wall:      [[],['bossBreachLives',1],['bossBreachLives',2],['bossEntryDmg',200],['endZonePenalty',true]],
-      cannon_towers:  [[],['waveStartBlast',1],['waveStartBlast',2],['waveStartBlast',3]],
-      moat:           [[],['endZoneSlow',.15],['endZoneSlow',.25],['endZoneDrown',true]],
-      payton_shrine:  [[],['slowDurMult',1.2],['slowDurMult',1.35],['slowChain',true]],
-      urlacher_shrine:[[],['aoeMult',1.15],['aoeMult',1.25],['aoeStun',true]],
-      dent_shrine:    [[],['armorPen',5],['armorPen',15],['instantKillChance',.1]],
-      ditka_shrine:   [[],['stunChanceMult',1.15],['stunChanceMult',1.25],['globalStunChance',.05]],
-    };
-
-    const pd = perkData[upg.id];
-    if (!pd) return;
-    for (let l=1; l<=lvl; l++) {
-      const arr = pd[l] || [];
-      for (let i=0; i<arr.length; i+=2) {
-        const k = arr[i], v = arr[i+1];
-        if (typeof v === 'boolean') P[k] = v;
-        else if (k === 'startLives') P.startLives += v;
-        else if (k === 'startCoins') P.startCoins += v;
-        else if (k === 'coinBonus') P.coinBonus += v;
-        else if (k === 'waveBonus') P.waveBonus += v;
-        else if (k === 'armorPen') P.armorPen += v;
-        else if (k === 'bossBreachLives') P.bossBreachLives += v;
-        else if (k === 'bossEntryDmg') P.bossEntryDmg += v;
-        else if (k === 'waveStartBlast') P.waveStartBlast += v;
-        else if (k === 'entrySlowDur') P.entrySlowDur += v;
-        else if (k === 'waveBuffTowers') P.waveBuffTowers += v;
-        else P[k] = v;
+  STADIUM_UPGRADES.forEach(upg=>{
+    const lvl=SF.sections[upg.id]||0;if(!lvl)return;
+    const pd=perkData[upg.id];if(!pd)return;
+    for(let l=1;l<=lvl;l++){
+      const arr=pd[l]||[];
+      for(let i=0;i<arr.length;i+=2){
+        const k=arr[i],v=arr[i+1];
+        if(typeof v==='boolean')P[k]=v;
+        else if(['startLives','startCoins','coinBonus','waveBonus','armorPen','bossBreachLives','bossEntryDmg','waveStartBlast','entrySlowDur','waveBuffTowers'].includes(k))P[k]+=v;
+        else P[k]=v;
       }
     }
   });
   return P;
 }
-let PERKS = {};
+let PERKS={};
 
-// ── TOWER DEFINITIONS ────────────────────────────────────────
+// TOWER DEFINITIONS — 16 Bears Legends
 const TOWER_DEFS = [
-  {id:'luckman',name:'Sid Luckman',number:'#42',role:'QB',emoji:'🏈',desc:'Multi-shot QB, hits 2-3 targets downfield.',cost:100,damage:26,range:180,fireRate:85,special:'multishot',projectileColor:'#C83803',color:'#1a3a6b',upgrades:[{cost:85,damageBonus:16,rangeBonus:22,fireRateBonus:12},{cost:130,damageBonus:28,rangeBonus:30,fireRateBonus:16},{cost:190,damageBonus:45,rangeBonus:40,fireRateBonus:20,specialUpgrade:'Hail Mary — hits ALL enemies on screen'}]},
-  {id:'payton',name:'Walter Payton',number:'#34',role:'RB',emoji:'💨',desc:'Sweetness. Ultra-fast, every hit slows enemies.',cost:120,damage:20,range:105,fireRate:28,special:'slow',projectileColor:'#FFB81C',color:'#2a5a1a',upgrades:[{cost:95,damageBonus:12,rangeBonus:12,fireRateBonus:5},{cost:145,damageBonus:20,rangeBonus:18,fireRateBonus:7},{cost:210,damageBonus:35,rangeBonus:25,fireRateBonus:6,specialUpgrade:'Sweetness Spin — AoE slow field'}]},
-  {id:'ditka',name:'Mike Ditka',number:'#89',role:'TE/HC',emoji:'🎯',desc:'DA COACH. High damage, stuns enemies cold.',cost:145,damage:48,range:125,fireRate:68,special:'stun',projectileColor:'#FF6B35',color:'#6b1a1a',upgrades:[{cost:115,damageBonus:28,rangeBonus:16,fireRateBonus:10},{cost:170,damageBonus:44,rangeBonus:22,fireRateBonus:13},{cost:240,damageBonus:70,rangeBonus:32,fireRateBonus:16,specialUpgrade:'DA SPEECH — stuns all enemies for 2 seconds'}]},
-  {id:'butkus',name:'Dick Butkus',number:'#51',role:'LB',emoji:'🛡️',desc:'The most feared Bear. AoE ground pound.',cost:165,damage:38,range:95,fireRate:50,special:'aoe',projectileColor:'#8B0000',color:'#2a1a6b',upgrades:[{cost:125,damageBonus:22,rangeBonus:22,fireRateBonus:6},{cost:185,damageBonus:38,rangeBonus:32,fireRateBonus:9},{cost:260,damageBonus:60,rangeBonus:55,fireRateBonus:12,specialUpgrade:'Nightmare Tackle — massive screen-wide AoE'}]},
-  {id:'hester',name:'Devin Hester',number:'#23',role:'KR',emoji:'⚡',desc:'Chain lightning jumps between 3-10 enemies.',cost:185,damage:22,range:135,fireRate:20,special:'chain',projectileColor:'#FFFF00',color:'#3a3a0a',upgrades:[{cost:135,damageBonus:14,rangeBonus:22,fireRateBonus:3},{cost:200,damageBonus:22,rangeBonus:32,fireRateBonus:4},{cost:280,damageBonus:35,rangeBonus:55,fireRateBonus:4,specialUpgrade:'RETURN SPECIALIST — 10-chain, double damage'}]},
-  {id:'urlacher',name:'Brian Urlacher',number:'#54',role:'MLB',emoji:'🔥',desc:'Huge AoE explosion. Wide-field destroyer.',cost:225,damage:58,range:155,fireRate:62,special:'aoe',projectileColor:'#FF4500',color:'#5a1a0a',upgrades:[{cost:165,damageBonus:32,rangeBonus:28,fireRateBonus:10},{cost:248,damageBonus:58,rangeBonus:38,fireRateBonus:13},{cost:350,damageBonus:96,rangeBonus:55,fireRateBonus:16,specialUpgrade:'URLACHER UNLEASHED — full-screen bomb'}]},
-  {id:'dent',name:'Richard Dent',number:'#95',role:'DE',emoji:'💥',desc:'Armor-piercing rounds. Destroys armored enemies.',cost:205,damage:75,range:115,fireRate:78,special:'armorpiercing',projectileColor:'#FF0000',color:'#4a0a0a',upgrades:[{cost:155,damageBonus:42,rangeBonus:16,fireRateBonus:13},{cost:230,damageBonus:75,rangeBonus:22,fireRateBonus:16},{cost:320,damageBonus:120,rangeBonus:32,fireRateBonus:20,specialUpgrade:'SACK MASTER — instantly kills weak non-boss enemies'}]},
-  {id:'perry',name:'William Perry',number:'#72',role:'DT',emoji:'🐻',desc:'THE REFRIGERATOR. Short-range, insane AoE smash.',cost:265,damage:110,range:72,fireRate:95,special:'aoe_melee',projectileColor:'#FFA500',color:'#1a1a1a',upgrades:[{cost:195,damageBonus:65,rangeBonus:10,fireRateBonus:16},{cost:290,damageBonus:110,rangeBonus:16,fireRateBonus:20},{cost:415,damageBonus:175,rangeBonus:28,fireRateBonus:22,specialUpgrade:'FRIDGE STAMPEDE — crushes entire path'}]},
-  {id:'morris',name:'Johnny Morris',number:'#47',role:'WR',emoji:'🏹',desc:'Sniper range. Always targets highest-HP enemy.',cost:175,damage:65,range:230,fireRate:98,special:'sniper',projectileColor:'#00BFFF',color:'#0a2a4a',upgrades:[{cost:135,damageBonus:38,rangeBonus:44,fireRateBonus:16},{cost:200,damageBonus:65,rangeBonus:65,fireRateBonus:20},{cost:285,damageBonus:110,rangeBonus:90,fireRateBonus:22,specialUpgrade:'DEEP ROUTE — pierces through all enemies in line'}]},
-  {id:'sayers',name:'Gale Sayers',number:'#40',role:'HB',emoji:'⭐',desc:'Split shot — each hit branches into 3 projectiles.',cost:195,damage:32,range:145,fireRate:54,special:'split',projectileColor:'#00FF7F',color:'#1a4a2a',upgrades:[{cost:145,damageBonus:20,rangeBonus:22,fireRateBonus:8},{cost:218,damageBonus:34,rangeBonus:32,fireRateBonus:11},{cost:310,damageBonus:55,rangeBonus:44,fireRateBonus:13,specialUpgrade:'COMET BURST — splits into 6 full-damage projectiles'}]},
+  {id:'luckman',name:'Sid Luckman',number:'#42',role:'QB',emoji:'&#127944;',desc:'Multi-shot QB, hits 2-3 targets downfield.',cost:100,damage:26,range:180,fireRate:85,special:'multishot',projectileColor:'#C83803',color:'#1a3a6b',rarity:'common',
+    upgrades:[{cost:85,damageBonus:16,rangeBonus:22,fireRateBonus:12},{cost:130,damageBonus:28,rangeBonus:30,fireRateBonus:16},{cost:190,damageBonus:45,rangeBonus:40,fireRateBonus:20,specialUpgrade:'Hail Mary — hits ALL enemies on screen'}]},
+  {id:'payton',name:'Walter Payton',number:'#34',role:'RB',emoji:'&#128168;',desc:'Sweetness. Ultra-fast, every hit slows enemies.',cost:120,damage:20,range:105,fireRate:28,special:'slow',projectileColor:'#FFB81C',color:'#2a5a1a',rarity:'common',
+    upgrades:[{cost:95,damageBonus:12,rangeBonus:12,fireRateBonus:5},{cost:145,damageBonus:20,rangeBonus:18,fireRateBonus:7},{cost:210,damageBonus:35,rangeBonus:25,fireRateBonus:6,specialUpgrade:'Sweetness Spin — AoE slow field'}]},
+  {id:'ditka',name:'Mike Ditka',number:'#89',role:'TE/HC',emoji:'&#127919;',desc:'DA COACH. High damage, stuns enemies cold.',cost:145,damage:48,range:125,fireRate:68,special:'stun',projectileColor:'#FF6B35',color:'#6b1a1a',rarity:'rare',
+    upgrades:[{cost:115,damageBonus:28,rangeBonus:16,fireRateBonus:10},{cost:170,damageBonus:44,rangeBonus:22,fireRateBonus:13},{cost:240,damageBonus:70,rangeBonus:32,fireRateBonus:16,specialUpgrade:'DA SPEECH — stuns all enemies for 2 seconds'}]},
+  {id:'butkus',name:'Dick Butkus',number:'#51',role:'LB',emoji:'&#128737;',desc:'The most feared Bear. AoE ground pound.',cost:165,damage:38,range:95,fireRate:50,special:'aoe',projectileColor:'#8B0000',color:'#2a1a6b',rarity:'rare',
+    upgrades:[{cost:125,damageBonus:22,rangeBonus:22,fireRateBonus:6},{cost:185,damageBonus:38,rangeBonus:32,fireRateBonus:9},{cost:260,damageBonus:60,rangeBonus:55,fireRateBonus:12,specialUpgrade:'Nightmare Tackle — massive screen-wide AoE'}]},
+  {id:'hester',name:'Devin Hester',number:'#23',role:'KR',emoji:'&#9889;',desc:'Chain lightning jumps between 3-10 enemies.',cost:185,damage:22,range:135,fireRate:20,special:'chain',projectileColor:'#FFFF00',color:'#3a3a0a',rarity:'rare',
+    upgrades:[{cost:135,damageBonus:14,rangeBonus:22,fireRateBonus:3},{cost:200,damageBonus:22,rangeBonus:32,fireRateBonus:4},{cost:280,damageBonus:35,rangeBonus:55,fireRateBonus:4,specialUpgrade:'RETURN SPECIALIST — 10-chain, double damage'}]},
+  {id:'urlacher',name:'Brian Urlacher',number:'#54',role:'MLB',emoji:'&#128293;',desc:'Huge AoE explosion. Wide-field destroyer.',cost:225,damage:58,range:155,fireRate:62,special:'aoe',projectileColor:'#FF4500',color:'#5a1a0a',rarity:'epic',
+    upgrades:[{cost:165,damageBonus:32,rangeBonus:28,fireRateBonus:10},{cost:248,damageBonus:58,rangeBonus:38,fireRateBonus:13},{cost:350,damageBonus:96,rangeBonus:55,fireRateBonus:16,specialUpgrade:'URLACHER UNLEASHED — full-screen bomb'}]},
+  {id:'dent',name:'Richard Dent',number:'#95',role:'DE',emoji:'&#128165;',desc:'Armor-piercing rounds. Destroys armored enemies.',cost:205,damage:75,range:115,fireRate:78,special:'armorpiercing',projectileColor:'#FF0000',color:'#4a0a0a',rarity:'epic',
+    upgrades:[{cost:155,damageBonus:42,rangeBonus:16,fireRateBonus:13},{cost:230,damageBonus:75,rangeBonus:22,fireRateBonus:16},{cost:320,damageBonus:120,rangeBonus:32,fireRateBonus:20,specialUpgrade:'SACK MASTER — instantly kills weak non-boss enemies'}]},
+  {id:'perry',name:'William Perry',number:'#72',role:'DT',emoji:'&#128059;',desc:'THE REFRIGERATOR. Short-range, insane AoE smash.',cost:265,damage:110,range:72,fireRate:95,special:'aoe_melee',projectileColor:'#FFA500',color:'#1a1a1a',rarity:'legendary',
+    upgrades:[{cost:195,damageBonus:65,rangeBonus:10,fireRateBonus:16},{cost:290,damageBonus:110,rangeBonus:16,fireRateBonus:20},{cost:415,damageBonus:175,rangeBonus:28,fireRateBonus:22,specialUpgrade:'FRIDGE STAMPEDE — crushes entire path'}]},
+  {id:'morris',name:'Johnny Morris',number:'#47',role:'WR',emoji:'&#127993;',desc:'Sniper range. Always targets highest-HP enemy.',cost:175,damage:65,range:230,fireRate:98,special:'sniper',projectileColor:'#00BFFF',color:'#0a2a4a',rarity:'rare',
+    upgrades:[{cost:135,damageBonus:38,rangeBonus:44,fireRateBonus:16},{cost:200,damageBonus:65,rangeBonus:65,fireRateBonus:20},{cost:285,damageBonus:110,rangeBonus:90,fireRateBonus:22,specialUpgrade:'DEEP ROUTE — pierces through all enemies in line'}]},
+  {id:'sayers',name:'Gale Sayers',number:'#40',role:'HB',emoji:'&#11088;',desc:'Split shot — each hit branches into 3 projectiles.',cost:195,damage:32,range:145,fireRate:54,special:'split',projectileColor:'#00FF7F',color:'#1a4a2a',rarity:'epic',
+    upgrades:[{cost:145,damageBonus:20,rangeBonus:22,fireRateBonus:8},{cost:218,damageBonus:34,rangeBonus:32,fireRateBonus:11},{cost:310,damageBonus:55,rangeBonus:44,fireRateBonus:13,specialUpgrade:'COMET BURST — splits into 6 full-damage projectiles'}]},
+  // NEW TOWERS
+  {id:'singletary',name:'Mike Singletary',number:'#50',role:'MLB',emoji:'&#128064;',desc:'The Stare! Inspire aura buffs all towers in range +15% damage.',cost:210,damage:35,range:140,fireRate:55,special:'inspire',projectileColor:'#FF8C00',color:'#3b1a0a',rarity:'epic',
+    upgrades:[{cost:155,damageBonus:20,rangeBonus:20,fireRateBonus:8},{cost:230,damageBonus:35,rangeBonus:30,fireRateBonus:10},{cost:330,damageBonus:55,rangeBonus:40,fireRateBonus:12,specialUpgrade:'THE STARE — inspire aura doubles to +30% damage'}]},
+  {id:'tillman',name:'Peanut Tillman',number:'#33',role:'CB',emoji:'&#129372;',desc:'Peanut Punch! 30% chance to steal bonus coins on hit.',cost:155,damage:30,range:130,fireRate:38,special:'peanut',projectileColor:'#8B4513',color:'#2a3a1a',rarity:'rare',
+    upgrades:[{cost:110,damageBonus:18,rangeBonus:18,fireRateBonus:5},{cost:165,damageBonus:30,rangeBonus:24,fireRateBonus:7},{cost:240,damageBonus:48,rangeBonus:32,fireRateBonus:9,specialUpgrade:'PEANUT PUNCH PRO — 50% steal chance, double coins'}]},
+  {id:'hampton',name:'Dan Hampton',number:'#99',role:'DT/DE',emoji:'&#129413;',desc:'The Danimal. Penetrating strikes shred enemy armor permanently.',cost:235,damage:55,range:100,fireRate:65,special:'armorshred',projectileColor:'#CC0000',color:'#3a0a0a',rarity:'epic',
+    upgrades:[{cost:165,damageBonus:30,rangeBonus:14,fireRateBonus:10},{cost:250,damageBonus:55,rangeBonus:20,fireRateBonus:14},{cost:360,damageBonus:90,rangeBonus:28,fireRateBonus:18,specialUpgrade:'DANIMAL RAGE — removes ALL armor on hit'}]},
+  {id:'briggs',name:'Lance Briggs',number:'#55',role:'OLB',emoji:'&#128170;',desc:'Rapid-fire tackle machine. Fastest attack speed in the game.',cost:140,damage:18,range:110,fireRate:15,special:'rapid',projectileColor:'#FF6347',color:'#4a2a0a',rarity:'common',
+    upgrades:[{cost:100,damageBonus:12,rangeBonus:16,fireRateBonus:2},{cost:155,damageBonus:22,rangeBonus:22,fireRateBonus:3},{cost:220,damageBonus:38,rangeBonus:30,fireRateBonus:3,specialUpgrade:'BLITZ MODE — double fire rate for 5s every 15s'}]},
+  {id:'atkins',name:'Doug Atkins',number:'#81',role:'DE',emoji:'&#129409;',desc:'6\'8" freak. Leaping strike deals heavy damage + stun.',cost:250,damage:95,range:90,fireRate:88,special:'leap',projectileColor:'#9B59B6',color:'#2a0a4a',rarity:'legendary',
+    upgrades:[{cost:180,damageBonus:55,rangeBonus:16,fireRateBonus:14},{cost:270,damageBonus:90,rangeBonus:22,fireRateBonus:18},{cost:390,damageBonus:150,rangeBonus:32,fireRateBonus:22,specialUpgrade:'VAULT OVER — leaps to ANY enemy on the map'}]},
+  {id:'fencik',name:'Gary Fencik',number:'#45',role:'S',emoji:'&#128373;',desc:'Yale intellect. Reveals stealth enemies. Long-range interception.',cost:180,damage:40,range:200,fireRate:72,special:'reveal',projectileColor:'#00D4FF',color:'#0a3a4a',rarity:'rare',canSeeInvisible:true,
+    upgrades:[{cost:130,damageBonus:24,rangeBonus:32,fireRateBonus:12},{cost:195,damageBonus:42,rangeBonus:48,fireRateBonus:16},{cost:280,damageBonus:68,rangeBonus:65,fireRateBonus:20,specialUpgrade:'TURNOVER MACHINE — 15% chance to instant-kill non-boss'}]},
 ];
 
-// ── WAVE DATA ────────────────────────────────────────────────
+// WAVE DATA — 16 Waves
 const WAVES = [
-  {team:'GREEN BAY PACKERS',emoji:'🧀',color:'#203731',intro:'First wave of Cheeseheads!',enemies:[{type:'Cheesehead Grunt',hp:70,speed:1.2,reward:8,count:14,color:'#203731',emoji:'🏈'},{type:'Favre (BOSS)',hp:1100,speed:0.95,reward:80,count:1,color:'#FFC300',emoji:'🧀',isBoss:true}]},
-  {team:'MINNESOTA VIKINGS',emoji:'⚔️',color:'#4F2683',intro:'Viking Invasion from the North!',enemies:[{type:'Viking Raider',hp:90,speed:1.3,reward:10,count:12,color:'#4F2683',emoji:'🪖'},{type:'Viking Berserker',hp:170,speed:1.7,reward:14,count:5,color:'#FFC62F',emoji:'⚔️',isFast:true},{type:'A. Peterson (BOSS)',hp:1350,speed:1.55,reward:100,count:1,color:'#4F2683',emoji:'⚔️',isBoss:true,isFast:true}]},
-  {team:'DETROIT LIONS',emoji:'🦁',color:'#0076B6',intro:'Motor City Lions on the move!',enemies:[{type:'Lion Rusher',hp:115,speed:1.4,reward:11,count:14,color:'#0076B6',emoji:'🦁'},{type:'Detroit Titan',hp:330,speed:0.8,reward:28,count:3,color:'#B0B7BC',emoji:'🛡️',isArmored:true,armor:18},{type:'B. Sanders (BOSS)',hp:1600,speed:1.8,reward:120,count:1,color:'#0076B6',emoji:'🦁',isBoss:true,isFast:true}]},
-  {team:'PACKERS: DISCOUNT DOUBLE CHECK',emoji:'🧀',color:'#203731',intro:'A-Rod is in the building!',enemies:[{type:'Packers O-Line',hp:200,speed:1.0,reward:16,count:10,color:'#203731',emoji:'🧀',isArmored:true,armor:12},{type:'Packer Blitzer',hp:155,speed:1.6,reward:14,count:8,color:'#FFC300',emoji:'⚡',isFast:true},{type:'A. Rodgers (BOSS)',hp:1900,speed:1.1,reward:150,count:1,color:'#FFC300',emoji:'🏈',isBoss:true,isElite:true}]},
-  {team:'DALLAS COWBOYS',emoji:'⭐',color:'#003594',intro:"America's Team crashes Soldier Field!",enemies:[{type:'Cowboy Gunslinger',hp:165,speed:1.5,reward:13,count:14,color:'#003594',emoji:'⭐'},{type:'Star Linebacker',hp:280,speed:1.0,reward:22,count:4,color:'#869397',emoji:'💪',isArmored:true,armor:15},{type:'E. Smith (BOSS)',hp:2100,speed:1.2,reward:160,count:1,color:'#003594',emoji:'⭐',isBoss:true}]},
-  {team:'SAN FRANCISCO 49ERS',emoji:'🏅',color:'#AA0000',intro:'The 49ers Gold Rush!',enemies:[{type:'Gold Rush Lineman',hp:195,speed:1.35,reward:15,count:14,color:'#AA0000',emoji:'⛏️'},{type:'Gold Rush Speedster',hp:155,speed:2.0,reward:18,count:6,color:'#B3995D',emoji:'🏃',isFast:true},{type:'J. Rice (BOSS)',hp:2300,speed:1.7,reward:180,count:1,color:'#B3995D',emoji:'🏃',isBoss:true,isFast:true}]},
-  {team:'PITTSBURGH STEELERS',emoji:'⚙️',color:'#FFB612',intro:'The Steel Curtain descends!',enemies:[{type:'Steel Curtain',hp:260,speed:0.95,reward:18,count:12,color:'#101820',emoji:'⚙️',isArmored:true,armor:30},{type:'Steeler Speed Back',hp:200,speed:1.8,reward:16,count:5,color:'#FFB612',emoji:'💨',isFast:true},{type:'Mean Joe Greene (BOSS)',hp:2600,speed:0.85,reward:200,count:1,color:'#FFB612',emoji:'⚙️',isBoss:true,isArmored:true,armor:35}]},
-  {team:"LOMBARDI'S PACKERS",emoji:'🧀',color:'#203731',intro:'The Minister of Defense arrives!',enemies:[{type:'Lombardi Packer',hp:300,speed:1.2,reward:22,count:14,color:'#203731',emoji:'🧀',isArmored:true,armor:20},{type:'Packer Elite Guard',hp:250,speed:1.5,reward:18,count:6,color:'#FFC300',emoji:'🛡️'},{type:'Reggie White (BOSS)',hp:3000,speed:1.0,reward:240,count:1,color:'#203731',emoji:'😤',isBoss:true,isArmored:true,armor:40}]},
-  {team:'NEW ENGLAND PATRIOTS',emoji:'🎩',color:'#002244',intro:"The GOAT is here. Don't let him through!",enemies:[{type:'Patriot Agent',hp:280,speed:1.6,reward:20,count:14,color:'#002244',emoji:'🕵️'},{type:'Hoodie Elite',hp:350,speed:1.1,reward:26,count:4,color:'#C60C30',emoji:'🎩',isArmored:true,armor:22},{type:'T. Brady (BOSS)',hp:3400,speed:1.2,reward:270,count:1,color:'#C60C30',emoji:'🐐',isBoss:true,isElite:true}]},
-  {team:'NFC NORTH ALL-STARS',emoji:'❄️',color:'#444',intro:'The whole division comes to town!',enemies:[{type:'Division All-Star',hp:340,speed:1.4,reward:24,count:16,color:'#555',emoji:'❄️'},{type:'Division Rusher',hp:250,speed:2.0,reward:20,count:6,color:'#AAA',emoji:'💨',isFast:true},{type:'Division Guard',hp:450,speed:0.9,reward:32,count:4,color:'#333',emoji:'🛡️',isArmored:true,armor:30},{type:'Peterson (BOSS)',hp:3800,speed:1.5,reward:300,count:1,color:'#4F2683',emoji:'⚔️',isBoss:true,isFast:true}]},
-  {team:'🧀 CHEESE TSUNAMI 🧀',emoji:'🧀',color:'#203731',intro:'The ultimate Packer nightmare — BOTH legends!',isCheeseTsunami:true,enemies:[{type:'Uber Packer',hp:500,speed:1.3,reward:30,count:14,color:'#203731',emoji:'🧀',isArmored:true,armor:25},{type:'Packer Speedster',hp:350,speed:2.1,reward:25,count:8,color:'#FFC300',emoji:'⚡',isFast:true},{type:'Packer Tank',hp:700,speed:0.75,reward:45,count:4,color:'#203731',emoji:'🛡️🧀',isArmored:true,armor:50},{type:'Brett Favre FINAL (BOSS)',hp:4200,speed:1.0,reward:350,count:1,color:'#FFC300',emoji:'🧀',isBoss:true,bossScale:1.8,isElite:true},{type:'Aaron Rodgers FINAL (BOSS)',hp:4800,speed:1.15,reward:420,count:1,color:'#00AA44',emoji:'🏈',isBoss:true,bossScale:2.0,isElite:true}]},
-  {team:'⚡ NFL SUPER INVASION ⚡',emoji:'🏆',color:'#FFB81C',intro:'The final stand — defend Soldier Field!',isFinalWave:true,enemies:[{type:'NFL All-Star Lineman',hp:450,speed:1.4,reward:28,count:18,color:'#444',emoji:'💪'},{type:'All-Star Speedback',hp:300,speed:2.4,reward:24,count:8,color:'#FFD700',emoji:'🏃',isFast:true},{type:'All-Star Tank',hp:650,speed:0.85,reward:40,count:5,color:'#333',emoji:'🛡️',isArmored:true,armor:45},{type:"Lombardi's Ghost (BOSS)",hp:5500,speed:0.9,reward:500,count:1,color:'#203731',emoji:'👻🧀',isBoss:true,bossScale:1.9,isArmored:true,armor:50},{type:'COMMISSIONER GOODELL (BOSS)',hp:7000,speed:0.75,reward:700,count:1,color:'#7B2FBE',emoji:'👔',isBoss:true,isFinalBoss:true,bossScale:2.2}]},
+  {team:'GREEN BAY PACKERS',emoji:'&#129472;',color:'#203731',intro:'First wave of Cheeseheads!',enemies:[
+    {type:'Cheesehead Grunt',hp:70,speed:1.2,reward:8,count:14,color:'#203731',emoji:'&#127944;'},
+    {type:'Favre (BOSS)',hp:1100,speed:0.95,reward:80,count:1,color:'#FFC300',emoji:'&#129472;',isBoss:true}]},
+  {team:'MINNESOTA VIKINGS',emoji:'&#9876;',color:'#4F2683',intro:'Viking Invasion from the North!',enemies:[
+    {type:'Viking Raider',hp:90,speed:1.3,reward:10,count:12,color:'#4F2683',emoji:'&#129694;'},
+    {type:'Viking Berserker',hp:170,speed:1.7,reward:14,count:5,color:'#FFC62F',emoji:'&#9876;',isFast:true},
+    {type:'A. Peterson (BOSS)',hp:1350,speed:1.55,reward:100,count:1,color:'#4F2683',emoji:'&#9876;',isBoss:true,isFast:true}]},
+  {team:'DETROIT LIONS',emoji:'&#129409;',color:'#0076B6',intro:'Motor City Lions on the move!',enemies:[
+    {type:'Lion Rusher',hp:115,speed:1.4,reward:11,count:14,color:'#0076B6',emoji:'&#129409;'},
+    {type:'Detroit Titan',hp:330,speed:0.8,reward:28,count:3,color:'#B0B7BC',emoji:'&#128737;',isArmored:true,armor:18},
+    {type:'B. Sanders (BOSS)',hp:1600,speed:1.8,reward:120,count:1,color:'#0076B6',emoji:'&#129409;',isBoss:true,isFast:true}]},
+  {team:'PACKERS: DISCOUNT DOUBLE CHECK',emoji:'&#129472;',color:'#203731',intro:'A-Rod is in the building!',enemies:[
+    {type:'Packers O-Line',hp:200,speed:1.0,reward:16,count:10,color:'#203731',emoji:'&#129472;',isArmored:true,armor:12},
+    {type:'Packer Blitzer',hp:155,speed:1.6,reward:14,count:8,color:'#FFC300',emoji:'&#9889;',isFast:true},
+    {type:'A. Rodgers (BOSS)',hp:1900,speed:1.1,reward:150,count:1,color:'#FFC300',emoji:'&#127944;',isBoss:true,isElite:true}]},
+  {team:'DALLAS COWBOYS',emoji:'&#11088;',color:'#003594',intro:"America's Team crashes Soldier Field!",enemies:[
+    {type:'Cowboy Gunslinger',hp:165,speed:1.5,reward:13,count:14,color:'#003594',emoji:'&#11088;'},
+    {type:'Star Linebacker',hp:280,speed:1.0,reward:22,count:4,color:'#869397',emoji:'&#128170;',isArmored:true,armor:15},
+    {type:'Stealth Scout',hp:120,speed:1.8,reward:20,count:3,color:'#003594',emoji:'&#128375;',isStealth:true},
+    {type:'E. Smith (BOSS)',hp:2100,speed:1.2,reward:160,count:1,color:'#003594',emoji:'&#11088;',isBoss:true}]},
+  {team:'SAN FRANCISCO 49ERS',emoji:'&#127941;',color:'#AA0000',intro:'The 49ers Gold Rush!',enemies:[
+    {type:'Gold Rush Lineman',hp:195,speed:1.35,reward:15,count:14,color:'#AA0000',emoji:'&#9935;'},
+    {type:'Gold Rush Speedster',hp:155,speed:2.0,reward:18,count:6,color:'#B3995D',emoji:'&#127939;',isFast:true},
+    {type:'J. Rice (BOSS)',hp:2300,speed:1.7,reward:180,count:1,color:'#B3995D',emoji:'&#127939;',isBoss:true,isFast:true}]},
+  {team:'PITTSBURGH STEELERS',emoji:'&#9881;',color:'#FFB612',intro:'The Steel Curtain descends!',enemies:[
+    {type:'Steel Curtain',hp:260,speed:0.95,reward:18,count:12,color:'#101820',emoji:'&#9881;',isArmored:true,armor:30},
+    {type:'Steeler Speed Back',hp:200,speed:1.8,reward:16,count:5,color:'#FFB612',emoji:'&#128168;',isFast:true},
+    {type:'Mean Joe Greene (BOSS)',hp:2600,speed:0.85,reward:200,count:1,color:'#FFB612',emoji:'&#9881;',isBoss:true,isArmored:true,armor:35}]},
+  {team:"LOMBARDI'S PACKERS",emoji:'&#129472;',color:'#203731',intro:'The Minister of Defense arrives!',enemies:[
+    {type:'Lombardi Packer',hp:300,speed:1.2,reward:22,count:14,color:'#203731',emoji:'&#129472;',isArmored:true,armor:20},
+    {type:'Packer Medic',hp:180,speed:1.1,reward:25,count:3,color:'#66BB6A',emoji:'&#10133;',isHealer:true},
+    {type:'Packer Elite Guard',hp:250,speed:1.5,reward:18,count:6,color:'#FFC300',emoji:'&#128737;'},
+    {type:'Reggie White (BOSS)',hp:3000,speed:1.0,reward:240,count:1,color:'#203731',emoji:'&#128548;',isBoss:true,isArmored:true,armor:40}]},
+  {team:'NEW ENGLAND PATRIOTS',emoji:'&#127913;',color:'#002244',intro:"The GOAT is here. Don't let him through!",enemies:[
+    {type:'Patriot Agent',hp:280,speed:1.6,reward:20,count:14,color:'#002244',emoji:'&#128373;'},
+    {type:'Stealth Spy',hp:200,speed:1.5,reward:28,count:5,color:'#002244',emoji:'&#128375;',isStealth:true},
+    {type:'Hoodie Elite',hp:350,speed:1.1,reward:26,count:4,color:'#C60C30',emoji:'&#127913;',isArmored:true,armor:22},
+    {type:'T. Brady (BOSS)',hp:3400,speed:1.2,reward:270,count:1,color:'#C60C30',emoji:'&#128016;',isBoss:true,isElite:true}]},
+  {team:'KANSAS CITY CHIEFS',emoji:'&#129345;',color:'#E31837',intro:'Mahomes and the Chiefs roll in!',enemies:[
+    {type:'Chiefs Speedster',hp:220,speed:2.2,reward:22,count:10,color:'#E31837',emoji:'&#127939;',isFast:true},
+    {type:'Chiefs Lineman',hp:380,speed:0.9,reward:28,count:6,color:'#FFB81C',emoji:'&#128170;',isArmored:true,armor:25},
+    {type:'Chiefs Splitter',hp:300,speed:1.3,reward:30,count:4,color:'#E31837',emoji:'&#128163;',isSplitter:true},
+    {type:'P. Mahomes (BOSS)',hp:3800,speed:1.4,reward:320,count:1,color:'#E31837',emoji:'&#127944;',isBoss:true,isElite:true}]},
+  {team:'NFC NORTH ALL-STARS',emoji:'&#10052;',color:'#444',intro:'The whole division comes to town!',enemies:[
+    {type:'Division All-Star',hp:340,speed:1.4,reward:24,count:16,color:'#555',emoji:'&#10052;'},
+    {type:'Division Rusher',hp:250,speed:2.0,reward:20,count:6,color:'#AAA',emoji:'&#128168;',isFast:true},
+    {type:'Division Guard',hp:450,speed:0.9,reward:32,count:4,color:'#333',emoji:'&#128737;',isArmored:true,armor:30},
+    {type:'Division Phantom',hp:280,speed:1.6,reward:35,count:4,color:'#666',emoji:'&#128123;',isStealth:true},
+    {type:'Peterson (BOSS)',hp:4000,speed:1.5,reward:300,count:1,color:'#4F2683',emoji:'&#9876;',isBoss:true,isFast:true}]},
+  {team:'SEATTLE SEAHAWKS',emoji:'&#129413;',color:'#002244',intro:'The Legion of Boom strikes!',enemies:[
+    {type:'Seahawk Defender',hp:380,speed:1.3,reward:26,count:14,color:'#69BE28',emoji:'&#129413;'},
+    {type:'Beast Mode Runner',hp:500,speed:1.6,reward:35,count:5,color:'#002244',emoji:'&#128170;',isArmored:true,armor:28,isFast:true},
+    {type:'Seahawk Medic',hp:250,speed:1.2,reward:30,count:3,color:'#66BB6A',emoji:'&#10133;',isHealer:true},
+    {type:'R. Wilson (BOSS)',hp:4500,speed:1.5,reward:350,count:1,color:'#69BE28',emoji:'&#127944;',isBoss:true,isElite:true}]},
+  {team:'BALTIMORE RAVENS',emoji:'&#129415;',color:'#241773',intro:'The Ravens defense challenges yours!',enemies:[
+    {type:'Raven Bruiser',hp:420,speed:1.2,reward:28,count:12,color:'#241773',emoji:'&#129415;',isArmored:true,armor:22},
+    {type:'Raven Shadow',hp:300,speed:1.8,reward:32,count:6,color:'#9E7C0C',emoji:'&#128375;',isStealth:true,isFast:true},
+    {type:'Raven Splitter',hp:400,speed:1.1,reward:35,count:4,color:'#241773',emoji:'&#128163;',isSplitter:true},
+    {type:'R. Lewis (BOSS)',hp:5000,speed:1.0,reward:400,count:1,color:'#9E7C0C',emoji:'&#128170;',isBoss:true,isArmored:true,armor:45}]},
+  {team:'NFL ALL-PRO TEAM',emoji:'&#127775;',color:'#DAA520',intro:'Every star in the league has assembled!',enemies:[
+    {type:'All-Pro Guard',hp:500,speed:1.3,reward:32,count:16,color:'#DAA520',emoji:'&#127775;',isArmored:true,armor:30},
+    {type:'All-Pro Speed Demon',hp:350,speed:2.3,reward:28,count:8,color:'#FF6347',emoji:'&#128168;',isFast:true},
+    {type:'All-Pro Phantom',hp:380,speed:1.5,reward:40,count:5,color:'#8B008B',emoji:'&#128123;',isStealth:true},
+    {type:'All-Pro Medic',hp:300,speed:1.2,reward:35,count:3,color:'#66BB6A',emoji:'&#10133;',isHealer:true},
+    {type:'All-Pro Splitter',hp:600,speed:1.0,reward:45,count:3,color:'#DAA520',emoji:'&#128163;',isSplitter:true},
+    {type:'L. Jackson (BOSS)',hp:5500,speed:1.6,reward:450,count:1,color:'#241773',emoji:'&#9889;',isBoss:true,isElite:true,isFast:true}]},
+  {team:'CHEESE TSUNAMI',emoji:'&#129472;',color:'#203731',intro:'The ultimate Packer nightmare — BOTH legends!',isCheeseTsunami:true,enemies:[
+    {type:'Uber Packer',hp:500,speed:1.3,reward:30,count:14,color:'#203731',emoji:'&#129472;',isArmored:true,armor:25},
+    {type:'Packer Speedster',hp:350,speed:2.1,reward:25,count:8,color:'#FFC300',emoji:'&#9889;',isFast:true},
+    {type:'Packer Tank',hp:700,speed:0.75,reward:45,count:4,color:'#203731',emoji:'&#128737;&#129472;',isArmored:true,armor:50},
+    {type:'Packer Ghost',hp:400,speed:1.6,reward:40,count:4,color:'#888',emoji:'&#128123;',isStealth:true},
+    {type:'Brett Favre FINAL (BOSS)',hp:5800,speed:1.0,reward:500,count:1,color:'#FFC300',emoji:'&#129472;',isBoss:true,bossScale:1.8,isElite:true},
+    {type:'Aaron Rodgers FINAL (BOSS)',hp:6500,speed:1.15,reward:600,count:1,color:'#00AA44',emoji:'&#127944;',isBoss:true,bossScale:2.0,isElite:true}]},
+  {team:'NFL SUPER INVASION',emoji:'&#127942;',color:'#FFB81C',intro:'The final stand — defend Soldier Field!',isFinalWave:true,enemies:[
+    {type:'NFL All-Star Lineman',hp:550,speed:1.4,reward:32,count:18,color:'#444',emoji:'&#128170;'},
+    {type:'All-Star Speedback',hp:350,speed:2.4,reward:28,count:8,color:'#FFD700',emoji:'&#127939;',isFast:true},
+    {type:'All-Star Tank',hp:750,speed:0.85,reward:45,count:5,color:'#333',emoji:'&#128737;',isArmored:true,armor:50},
+    {type:'Phantom Assassin',hp:500,speed:1.8,reward:50,count:4,color:'#400040',emoji:'&#128123;',isStealth:true,isFast:true},
+    {type:'Mega Splitter',hp:800,speed:1.0,reward:55,count:3,color:'#8B0000',emoji:'&#128163;',isSplitter:true,isArmored:true,armor:30},
+    {type:"Lombardi's Ghost (BOSS)",hp:7000,speed:0.9,reward:600,count:1,color:'#203731',emoji:'&#128123;&#129472;',isBoss:true,bossScale:1.9,isArmored:true,armor:55},
+    {type:'COMMISSIONER GOODELL (BOSS)',hp:9000,speed:0.75,reward:900,count:1,color:'#7B2FBE',emoji:'&#128084;',isBoss:true,isFinalBoss:true,bossScale:2.2}]},
 ];
 
-// ── PATH ──────────────────────────────────────────────────────
+// PATH
 function buildPath(cols,rows){
   const path=[];
   const q1=Math.floor(rows*.25),q3=Math.floor(rows*.75);
@@ -642,10 +670,10 @@ function buildPath(cols,rows){
   return path.filter(p=>{const k=`${p.col},${p.row}`;if(seen.has(k))return false;seen.add(k);return true;});
 }
 
-// ── CANVAS SETUP ─────────────────────────────────────────────
+// CANVAS SETUP
 function resizeCanvas(){
   const cont=document.getElementById('canvas-container');
-  canvas.width=cont.clientWidth; canvas.height=cont.clientHeight;
+  canvas.width=cont.clientWidth;canvas.height=cont.clientHeight;
   G.tileSize=Math.max(30,Math.min(46,Math.floor(canvas.width/14)));
   G.cols=Math.floor(canvas.width/G.tileSize);
   G.rows=Math.floor(canvas.height/G.tileSize);
@@ -654,19 +682,27 @@ function resizeCanvas(){
   G.towers.forEach(t=>{t.x=(t.col+.5)*G.tileSize;t.y=(t.row+.5)*G.tileSize;});
 }
 
-// ── RENDER — FIELD ───────────────────────────────────────────
+// SCREEN SHAKE
+function addShake(intensity){G.screenShake.intensity=Math.min(12,G.screenShake.intensity+intensity);}
+function updateShake(){
+  if(G.screenShake.intensity>0){
+    G.screenShake.x=(Math.random()-.5)*G.screenShake.intensity*2;
+    G.screenShake.y=(Math.random()-.5)*G.screenShake.intensity*2;
+    G.screenShake.intensity*=.88;
+    if(G.screenShake.intensity<.3)G.screenShake.intensity=0;
+  }else{G.screenShake.x=0;G.screenShake.y=0;}
+}
+
+// RENDER — FIELD
 function renderField(){
   const ts=G.tileSize;
-  ctx.fillStyle='#2D5A1B';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  for(let c=0;c<G.cols;c++) for(let r=0;r<G.rows;r++){
+  ctx.fillStyle='#2D5A1B';ctx.fillRect(0,0,canvas.width,canvas.height);
+  for(let c=0;c<G.cols;c++)for(let r=0;r<G.rows;r++){
     if((c+r)%2===0){ctx.fillStyle='rgba(0,0,0,.07)';ctx.fillRect(c*ts,r*ts,ts,ts);}
   }
   ctx.strokeStyle='rgba(255,255,255,.05)';ctx.lineWidth=1;
   for(let c=0;c<=G.cols;c++){ctx.beginPath();ctx.moveTo(c*ts,0);ctx.lineTo(c*ts,canvas.height);ctx.stroke();}
   for(let r=0;r<=G.rows;r++){ctx.beginPath();ctx.moveTo(0,r*ts);ctx.lineTo(canvas.width,r*ts);ctx.stroke();}
-
-  // Draw stadium overlays (buildings along edges)
   renderStadiumOnField();
 }
 
@@ -677,8 +713,7 @@ function renderPath(){
     const grad=ctx.createLinearGradient(x,y,x+ts,y+ts);
     grad.addColorStop(0,'#5C4A1E');grad.addColorStop(1,'#4A3A16');
     ctx.fillStyle=grad;ctx.fillRect(x,y,ts,ts);
-    ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1;
-    ctx.strokeRect(x+1,y+1,ts-2,ts-2);
+    ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1;ctx.strokeRect(x+1,y+1,ts-2,ts-2);
   }
   ctx.strokeStyle='rgba(200,56,3,.3)';ctx.lineWidth=1.5;
   for(let i=1;i<G.path.length-1;i+=3){
@@ -687,8 +722,7 @@ function renderPath(){
     const cx2=(cur.col+.5)*ts,cy2=(cur.row+.5)*ts;
     const angle=Math.atan2(dy,dx),al=ts*.28;
     ctx.save();ctx.translate(cx2,cy2);ctx.rotate(angle);
-    ctx.beginPath();ctx.moveTo(-al,0);ctx.lineTo(al,0);
-    ctx.lineTo(al*.45,-al*.45);ctx.moveTo(al,0);ctx.lineTo(al*.45,al*.45);
+    ctx.beginPath();ctx.moveTo(-al,0);ctx.lineTo(al,0);ctx.lineTo(al*.45,-al*.45);ctx.moveTo(al,0);ctx.lineTo(al*.45,al*.45);
     ctx.stroke();ctx.restore();
   }
   const last=G.path[G.path.length-1];
@@ -700,134 +734,29 @@ function renderPath(){
   ctx.fillText('END ZONE',(last.col+.5)*ts,(last.row+.5)*ts);ctx.restore();
 }
 
-// ── RENDER STADIUM ON FIELD ──────────────────────────────────
 function renderStadiumOnField(){
-  const ts=G.tileSize;
-  const sections=SF.sections;
-  const W=canvas.width,H=canvas.height;
-
-  // South stands (bottom row)
-  const sLvl=sections['south_stands']||0;
-  if(sLvl>0){
-    const h=Math.max(ts*.6,ts*sLvl*.55);
-    const y=H-h;
-    const grad=ctx.createLinearGradient(0,y,0,H);
-    grad.addColorStop(0,'rgba(11,22,42,0.85)');
-    grad.addColorStop(1,'rgba(11,22,42,0.95)');
-    ctx.fillStyle=grad;ctx.fillRect(0,y,W,h);
-    // Seats
-    const rows=Math.min(sLvl+1,4),cols=Math.floor(W/8);
-    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
-      const sx=c*8+4,sy=y+r*10+6;
-      ctx.fillStyle=r%2===0?'rgba(200,56,3,.7)':'rgba(11,22,42,.8)';
-      ctx.fillRect(sx,sy,7,8);
-    }
-    // Railing
-    ctx.fillStyle='rgba(255,184,28,.6)';ctx.fillRect(0,y,W,2);
-    if(sLvl>=3){
-      ctx.fillStyle='rgba(255,184,28,.3)';
-      ctx.font=`bold ${ts*.45}px Bebas Neue`;ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText('SOLDIER FIELD',W/2,y+h/2);
-    }
-  }
-
-  // North stands (top row)
-  const nLvl=sections['north_stands']||0;
-  if(nLvl>0){
-    const h=Math.max(ts*.6,ts*nLvl*.55);
-    const grad=ctx.createLinearGradient(0,0,0,h);
-    grad.addColorStop(0,'rgba(11,22,42,0.95)');grad.addColorStop(1,'rgba(11,22,42,0.85)');
-    ctx.fillStyle=grad;ctx.fillRect(0,0,W,h);
-    const rows=Math.min(nLvl+1,4),cols=Math.floor(W/8);
-    for(let r=0;r<rows;r++) for(let c=0;c<cols;c++){
-      const sx=c*8+4,sy=r*10+6;
-      ctx.fillStyle=r%2===0?'rgba(200,56,3,.7)':'rgba(11,22,42,.8)';ctx.fillRect(sx,sy,7,8);
-    }
-    ctx.fillStyle='rgba(255,184,28,.6)';ctx.fillRect(0,h-2,W,2);
-  }
-
-  // Press box / Jumbotron (top center)
-  const pbLvl=sections['press_box']||0;
-  if(pbLvl>0){
-    const bx=W/2-ts*1.8,by=(sections['north_stands']||0)*ts*.55+2;
-    const bw=ts*3.6,bh=ts*(pbLvl*.6+.4);
-    ctx.fillStyle='rgba(20,30,50,0.92)';
-    ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();
-    ctx.strokeStyle='rgba(255,184,28,.6)';ctx.lineWidth=2;ctx.stroke();
-    if(pbLvl>=2){
-      // Jumbotron screen
-      ctx.fillStyle='rgba(0,0,0,.8)';
-      ctx.fillRect(bx+6,by+4,bw-12,bh-8);
-      ctx.fillStyle='rgba(200,56,3,.6)';
-      ctx.font=`bold ${Math.min(ts*.35,14)}px Bebas Neue`;ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText('📺 JUMBOTRON',W/2,by+bh/2);
-    }
-  }
-
-  // Corner cannon towers
-  const ctLvl=sections['cannon_towers']||0;
-  if(ctLvl>0){
-    [[10,10],[W-25,10],[10,H-25],[W-25,H-25]].forEach(([cx2,cy2])=>{
-      ctx.fillStyle='rgba(80,20,20,.9)';
-      ctx.beginPath();ctx.arc(cx2,cy2,12,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle='rgba(255,100,0,.8)';ctx.lineWidth=2;ctx.stroke();
-      ctx.fillStyle='rgba(255,150,0,.9)';
-      ctx.font='14px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText('💣',cx2,cy2);
-    });
-  }
-
-  // Bear statues (mid-sides)
-  const bsLvl=sections['bear_statues']||0;
-  if(bsLvl>0){
-    [[12,H/2],[W-18,H/2]].forEach(([bx,by])=>{
-      ctx.fillStyle=bsLvl>=3?'rgba(200,160,0,.8)':bsLvl>=2?'rgba(160,160,160,.8)':'rgba(120,80,30,.8)';
-      ctx.beginPath();ctx.arc(bx,by,11,0,Math.PI*2);ctx.fill();
-      ctx.strokeStyle=bsLvl>=3?'rgba(255,220,0,.9)':'rgba(255,255,255,.4)';ctx.lineWidth=2;ctx.stroke();
-      ctx.font='14px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-      ctx.fillText('🐻',bx,by);
-    });
-  }
-
-  // Moat (slight visual glow around end zone)
-  const moatLvl=sections['moat']||0;
-  if(moatLvl>0){
-    const last=G.path[G.path.length-1];
-    const mx=(last.col+.5)*ts,my=(last.row+.5)*ts;
-    const moatGrad=ctx.createRadialGradient(mx,my,ts*.5,mx,my,ts*3);
-    moatGrad.addColorStop(0,'rgba(0,100,200,.3)');moatGrad.addColorStop(1,'transparent');
-    ctx.fillStyle=moatGrad;ctx.fillRect(mx-ts*3,my-ts*3,ts*6,ts*6);
-  }
-
-  // Hall of Fame (left side, upper)
-  const hofLvl=sections['hall_of_fame']||0;
-  if(hofLvl>0){
-    const hx=2,hy=H*.35,hw=ts*.9,hh=ts*(hofLvl*.5+.6);
-    ctx.fillStyle='rgba(30,20,5,.92)';
-    ctx.beginPath();ctx.roundRect(hx,hy,hw,hh,3);ctx.fill();
-    ctx.strokeStyle='rgba(255,184,28,.5)';ctx.lineWidth=1.5;ctx.stroke();
-    ctx.font='11px serif';ctx.textAlign='center';ctx.textBaseline='middle';
-    ctx.fillText('🏆',hx+hw/2,hy+hh/2);
-  }
-
-  // Wind tunnel / lake effect fog
-  if((sections['wind_tunnel']||0)>=2){
-    for(let i=0;i<3;i++){
-      const fy=(H*.2)+i*H*.2;
-      const fgrad=ctx.createLinearGradient(0,fy,ts*2,fy);
-      fgrad.addColorStop(0,'rgba(200,220,255,.08)');fgrad.addColorStop(1,'transparent');
-      ctx.fillStyle=fgrad;ctx.fillRect(0,fy-8,ts*2,16);
-    }
-  }
+  const ts=G.tileSize,s=SF.sections,W=canvas.width,H=canvas.height;
+  const sLvl=s['south_stands']||0;
+  if(sLvl>0){const h=Math.max(ts*.6,ts*sLvl*.55),y=H-h;const grad=ctx.createLinearGradient(0,y,0,H);grad.addColorStop(0,'rgba(11,22,42,0.85)');grad.addColorStop(1,'rgba(11,22,42,0.95)');ctx.fillStyle=grad;ctx.fillRect(0,y,W,h);const rows=Math.min(sLvl+1,4),cols=Math.floor(W/8);for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ctx.fillStyle=r%2===0?'rgba(200,56,3,.7)':'rgba(11,22,42,.8)';ctx.fillRect(c*8+4,y+r*10+6,7,8);}ctx.fillStyle='rgba(255,184,28,.6)';ctx.fillRect(0,y,W,2);if(sLvl>=3){ctx.fillStyle='rgba(255,184,28,.3)';ctx.font=`bold ${ts*.45}px Bebas Neue`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('SOLDIER FIELD',W/2,y+h/2);}}
+  const nLvl=s['north_stands']||0;
+  if(nLvl>0){const h=Math.max(ts*.6,ts*nLvl*.55);const grad=ctx.createLinearGradient(0,0,0,h);grad.addColorStop(0,'rgba(11,22,42,0.95)');grad.addColorStop(1,'rgba(11,22,42,0.85)');ctx.fillStyle=grad;ctx.fillRect(0,0,W,h);const rows=Math.min(nLvl+1,4),cols=Math.floor(W/8);for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){ctx.fillStyle=r%2===0?'rgba(200,56,3,.7)':'rgba(11,22,42,.8)';ctx.fillRect(c*8+4,r*10+6,7,8);}ctx.fillStyle='rgba(255,184,28,.6)';ctx.fillRect(0,h-2,W,2);}
+  const pbLvl=s['press_box']||0;
+  if(pbLvl>0){const bx=W/2-ts*1.8,by=(s['north_stands']||0)*ts*.55+2,bw=ts*3.6,bh=ts*(pbLvl*.6+.4);ctx.fillStyle='rgba(20,30,50,0.92)';ctx.beginPath();ctx.roundRect(bx,by,bw,bh,4);ctx.fill();ctx.strokeStyle='rgba(255,184,28,.6)';ctx.lineWidth=2;ctx.stroke();if(pbLvl>=2){ctx.fillStyle='rgba(0,0,0,.8)';ctx.fillRect(bx+6,by+4,bw-12,bh-8);ctx.fillStyle='rgba(200,56,3,.6)';ctx.font=`bold ${Math.min(ts*.35,14)}px Bebas Neue`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('JUMBOTRON',W/2,by+bh/2);}}
+  const ctLvl=s['cannon_towers']||0;
+  if(ctLvl>0){[[10,10],[W-25,10],[10,H-25],[W-25,H-25]].forEach(([cx2,cy2])=>{ctx.fillStyle='rgba(80,20,20,.9)';ctx.beginPath();ctx.arc(cx2,cy2,12,0,Math.PI*2);ctx.fill();ctx.strokeStyle='rgba(255,100,0,.8)';ctx.lineWidth=2;ctx.stroke();});}
+  const bsLvl=s['bear_statues']||0;
+  if(bsLvl>0){[[12,H/2],[W-18,H/2]].forEach(([bx,by])=>{ctx.fillStyle=bsLvl>=3?'rgba(200,160,0,.8)':bsLvl>=2?'rgba(160,160,160,.8)':'rgba(120,80,30,.8)';ctx.beginPath();ctx.arc(bx,by,11,0,Math.PI*2);ctx.fill();ctx.strokeStyle=bsLvl>=3?'rgba(255,220,0,.9)':'rgba(255,255,255,.4)';ctx.lineWidth=2;ctx.stroke();});}
+  const moatLvl=s['moat']||0;
+  if(moatLvl>0){const last=G.path[G.path.length-1];const mx=(last.col+.5)*ts,my=(last.row+.5)*ts;const moatGrad=ctx.createRadialGradient(mx,my,ts*.5,mx,my,ts*3);moatGrad.addColorStop(0,'rgba(0,100,200,.3)');moatGrad.addColorStop(1,'transparent');ctx.fillStyle=moatGrad;ctx.fillRect(mx-ts*3,my-ts*3,ts*6,ts*6);}
 }
 
 function renderPlacementOverlay(){
   if(!G.selectedTowerType)return;
   const ts=G.tileSize;const def=TOWER_DEFS.find(d=>d.id===G.selectedTowerType);
-  for(let c=0;c<G.cols;c++) for(let r=0;r<G.rows;r++){
+  for(let c=0;c<G.cols;c++)for(let r=0;r<G.rows;r++){
     const k=`${c},${r}`;
     if(!G.pathSet.has(k)&&!G.placedSet.has(k)){
-      const ok=def&&G.coins>=def.cost;
+      const ok=def&&G.coins>=Math.round(def.cost*(PERKS.towerCostMult||1));
       ctx.fillStyle=ok?'rgba(255,184,28,.11)':'rgba(255,50,50,.07)';ctx.fillRect(c*ts+1,r*ts+1,ts-2,ts-2);
       ctx.strokeStyle=ok?'rgba(255,184,28,.28)':'rgba(255,50,50,.2)';ctx.lineWidth=1;ctx.strokeRect(c*ts+1,r*ts+1,ts-2,ts-2);
     }
@@ -839,6 +768,21 @@ function renderTowers(){
   G.towers.forEach(t=>{
     const def=TOWER_DEFS.find(d=>d.id===t.type);if(!def)return;
     const x=t.x,y=t.y,r=ts*.42;
+    // Inspire aura
+    if(def.special==='inspire'){
+      ctx.beginPath();ctx.arc(x,y,t.range,0,Math.PI*2);
+      const aGrad=ctx.createRadialGradient(x,y,0,x,y,t.range);
+      aGrad.addColorStop(0,'rgba(255,140,0,.06)');aGrad.addColorStop(1,'rgba(255,140,0,.02)');
+      ctx.fillStyle=aGrad;ctx.fill();
+      ctx.strokeStyle='rgba(255,140,0,.15)';ctx.lineWidth=1;ctx.setLineDash([3,6]);ctx.stroke();ctx.setLineDash([]);
+    }
+    // Reveal aura
+    if(def.special==='reveal'){
+      ctx.beginPath();ctx.arc(x,y,t.range,0,Math.PI*2);
+      const rGrad=ctx.createRadialGradient(x,y,0,x,y,t.range);
+      rGrad.addColorStop(0,'rgba(0,212,255,.04)');rGrad.addColorStop(1,'rgba(0,212,255,.01)');
+      ctx.fillStyle=rGrad;ctx.fill();
+    }
     if(G.selectedPlacedTower===t){
       ctx.beginPath();ctx.arc(x,y,t.range,0,Math.PI*2);
       ctx.strokeStyle='rgba(255,184,28,.4)';ctx.lineWidth=1.5;ctx.setLineDash([4,4]);ctx.stroke();ctx.setLineDash([]);
@@ -854,7 +798,7 @@ function renderTowers(){
     ctx.fillStyle=def.projectileColor;ctx.font=`bold ${ts*.27}px Oswald`;
     ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(def.number,x,y-r*.15);
     ctx.font=`${ts*.27}px serif`;ctx.fillText(def.emoji,x,y+r*.52);
-    if(t.level>0) for(let i=0;i<=t.level;i++){
+    if(t.level>0)for(let i=0;i<=t.level;i++){
       const a=-Math.PI/2+(i*Math.PI*2/3)-(Math.PI/6);
       const px=x+Math.cos(a)*(r+4),py=y+Math.sin(a)*(r+4);
       ctx.beginPath();ctx.arc(px,py,3,0,Math.PI*2);ctx.fillStyle='#FFB81C';ctx.fill();
@@ -865,15 +809,30 @@ function renderTowers(){
 }
 
 function renderEnemies(){
+  // Check which enemies are revealed by Fencik towers
+  const revealSet=new Set();
+  G.towers.forEach(t=>{
+    const def=TOWER_DEFS.find(d=>d.id===t.type);
+    if(def&&(def.canSeeInvisible||def.special==='reveal')){
+      G.enemies.forEach(e=>{if(!e.dead&&e.isStealth&&dist(t,e)<=t.range)revealSet.add(e.id);});
+    }
+  });
+
   G.enemies.forEach(e=>{
     if(e.dead)return;
     const ts=G.tileSize;
     const scale=e.bossScale||(e.isFinalBoss?2.0:e.isBoss?1.55:1.0);
     const r=ts*.35*scale,x=e.x,y=e.y;
+    // Stealth enemies
+    if(e.isStealth&&!revealSet.has(e.id)){
+      ctx.globalAlpha=.15;
+    }
+    // Hit flash
+    if(e.hitFlash>0){ctx.globalAlpha=Math.min(1,ctx.globalAlpha+.3);e.hitFlash--;}
     if(e.isBoss||e.isFinalBoss){
-      const pulse=.2+Math.sin(G.frameCount*.08)*.12;
+      const pulse2=.2+Math.sin(G.frameCount*.08)*.12;
       ctx.beginPath();ctx.arc(x,y,r+12,0,Math.PI*2);
-      ctx.fillStyle=`rgba(${e.isFinalBoss?'180,0,255':e.isElite?'255,120,0':'255,50,50'},${pulse})`;ctx.fill();
+      ctx.fillStyle=`rgba(${e.isFinalBoss?'180,0,255':e.isElite?'255,120,0':'255,50,50'},${pulse2})`;ctx.fill();
       ctx.beginPath();ctx.arc(x,y,r+6,0,Math.PI*2);
       ctx.strokeStyle=e.isFinalBoss?'rgba(150,0,255,.8)':'rgba(255,50,50,.7)';ctx.lineWidth=2;ctx.stroke();
     }
@@ -881,11 +840,12 @@ function renderEnemies(){
     const grad=ctx.createRadialGradient(x-r*.3,y-r*.3,0,x,y,r);
     grad.addColorStop(0,lighten(e.color,35));grad.addColorStop(1,e.color);
     ctx.fillStyle=grad;ctx.fill();
-    ctx.strokeStyle=e.isFinalBoss?'#CC00FF':e.isBoss?'#FF2200':e.isArmored?'#888':e.color;
+    ctx.strokeStyle=e.isFinalBoss?'#CC00FF':e.isBoss?'#FF2200':e.isArmored?'#888':e.isStealth?'#666':e.color;
     ctx.lineWidth=e.isBoss?3:2;ctx.stroke();
     if(e.armor>0&&e.isArmored){ctx.beginPath();ctx.arc(x,y,r+5,0,Math.PI*2);ctx.strokeStyle='rgba(160,160,160,.7)';ctx.lineWidth=3;ctx.stroke();}
     if(e.slowed>0){ctx.beginPath();ctx.arc(x,y,r+2,0,Math.PI*2);ctx.strokeStyle='rgba(80,120,255,.65)';ctx.lineWidth=2.5;ctx.stroke();}
-    if(e.stunned>0){ctx.fillStyle='rgba(255,255,0,.9)';ctx.font=`${r*.85}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('⭐',x,y-r-7);}
+    if(e.stunned>0){ctx.fillStyle='rgba(255,255,0,.9)';ctx.font=`${r*.85}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('\u2B50',x,y-r-7);}
+    if(e.isHealer){ctx.fillStyle='rgba(0,255,0,.6)';ctx.font=`${r*.6}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('+',x+r+4,y-r);}
     ctx.font=`${r*1.15}px serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(e.emoji,x,y);
     if(e.isBoss&&e.bossDisplayName){
       ctx.save();ctx.font=`bold ${Math.max(9,ts*.22)}px Oswald`;ctx.textAlign='center';ctx.textBaseline='bottom';
@@ -897,6 +857,7 @@ function renderEnemies(){
     ctx.fillStyle='rgba(0,0,0,.7)';ctx.fillRect(hpX-1,hpY-1,hpW+2,hpH+2);
     const pct=e.hp/e.maxHp,hpc=pct>.6?'#00CC44':pct>.3?'#FFAA00':'#FF2200';
     ctx.fillStyle=hpc;ctx.fillRect(hpX,hpY,hpW*pct,hpH);
+    ctx.globalAlpha=1;
   });
 }
 
@@ -906,9 +867,18 @@ function renderProjectiles(){
     ctx.save();ctx.translate(p.x,p.y);ctx.rotate(p.angle);
     if(p.isLightning){ctx.strokeStyle=p.color;ctx.lineWidth=2;ctx.shadowBlur=10;ctx.shadowColor=p.color;ctx.beginPath();ctx.moveTo(-8,0);ctx.lineTo(-2,-5);ctx.lineTo(2,0);ctx.lineTo(8,5);ctx.stroke();ctx.shadowBlur=0;}
     else if(p.isBlast){ctx.beginPath();ctx.arc(0,0,p.radius*(1-p.life/p.maxLife),0,Math.PI*2);ctx.strokeStyle=`rgba(255,100,0,${p.life/p.maxLife})`;ctx.lineWidth=3;ctx.stroke();}
-    else{ctx.beginPath();ctx.arc(0,0,p.size||4,0,Math.PI*2);ctx.fillStyle=p.color;ctx.shadowBlur=6;ctx.shadowColor=p.color;ctx.fill();ctx.shadowBlur=0;}
+    else{ctx.beginPath();ctx.arc(0,0,p.size||4,0,Math.PI*2);ctx.fillStyle=p.color;ctx.shadowBlur=8;ctx.shadowColor=p.color;ctx.fill();ctx.shadowBlur=0;}
     ctx.restore();
   });
+}
+
+function renderTrails(){
+  G.trails.forEach(t=>{
+    if(t.life<=0)return;
+    ctx.globalAlpha=(t.life/t.maxLife)*.4;
+    ctx.beginPath();ctx.arc(t.x,t.y,t.r,0,Math.PI*2);ctx.fillStyle=t.color;ctx.fill();
+  });
+  ctx.globalAlpha=1;
 }
 
 function renderParticles(){
@@ -923,22 +893,37 @@ function renderFloaters(){
   });ctx.globalAlpha=1;
 }
 
-// ── GAME LOOP ─────────────────────────────────────────────────
+// GAME LOOP
 function gameLoop(ts){
   if(!G.running)return;
+  if(G.paused){G.animFrame=requestAnimationFrame(gameLoop);return;}
   G.lastTime=ts;G.frameCount++;
   const steps=G.speed===3?3:G.speed===2?2:1;
   for(let s=0;s<steps;s++){
     if(G.waveActive){updateSpawn();updateEnemies();updateTowers();updateProjectiles();updateParticles();}
     else{updateParticles();}
+    updateShake();
   }
   if(G.comboTimer>0){G.comboTimer--;if(G.comboTimer===0){G.combo=0;document.getElementById('combo-display').className='';}}
-  renderField();renderPath();renderPlacementOverlay();renderTowers();renderEnemies();renderProjectiles();renderParticles();renderFloaters();
+  // Update wave progress
+  if(G.waveActive){
+    const total=G.spawnQueue.length+G.enemies.filter(e=>!e.dead).length;
+    const startTotal=G.enemiesRemaining+G.totalKillsThisWave;
+    const prog=startTotal>0?((G.totalKillsThisWave)/(startTotal))*100:0;
+    document.getElementById('wave-progress-fill').style.width=Math.min(100,prog)+'%';
+  }
+  // Render with screen shake
+  ctx.save();
+  ctx.translate(G.screenShake.x,G.screenShake.y);
+  renderField();renderPath();renderPlacementOverlay();renderTowers();renderTrails();renderEnemies();renderProjectiles();renderParticles();renderFloaters();
+  ctx.restore();
   updateBossBar();
+  // Kill counter
+  document.getElementById('kill-counter').textContent=`KILLS: ${G.totalKills}`;
   G.animFrame=requestAnimationFrame(gameLoop);
 }
 
-// ── UPDATE FUNCTIONS ──────────────────────────────────────────
+// UPDATE FUNCTIONS
 function updateSpawn(){
   if(G.spawnQueue.length===0){
     if(G.enemies.filter(e=>!e.dead).length===0&&G.enemiesRemaining===0){waveComplete();}
@@ -951,6 +936,7 @@ function updateSpawn(){
     if(template.isBoss){
       document.getElementById('canvas-container').className='boss-entering';
       setTimeout(()=>document.getElementById('canvas-container').className='',500);
+      addShake(6);
     }
     G.spawnTimer=template.isBoss?90:G.spawnInterval;
   }
@@ -960,18 +946,13 @@ function spawnEnemy(template){
   const start=G.path[0];
   const spd=template.speed*(PERKS.enemySpeedMult||1);
   const e={
-    ...template,
-    speed:spd,
-    maxHp:template.hp,
-    x:(start.col+.5)*G.tileSize,
-    y:(start.row+.5)*G.tileSize,
-    pathIndex:0,
-    slowed:PERKS.entrySlowAll?60:PERKS.entrySlowDur>0?(PERKS.entrySlowDur*60):0,
-    stunned:0,dead:false,
+    ...template,speed:spd,maxHp:template.hp,
+    x:(start.col+.5)*G.tileSize,y:(start.row+.5)*G.tileSize,
+    pathIndex:0,slowed:PERKS.entrySlowAll?60:PERKS.entrySlowDur>0?(PERKS.entrySlowDur*60):0,
+    stunned:0,dead:false,hitFlash:0,healTimer:0,
     id:Math.random(),
     bossDisplayName:template.isBoss?template.type.replace(' (BOSS)','').replace(' FINAL',''):null,
   };
-  // Boss entry damage
   if(e.isBoss&&PERKS.bossEntryDmg>0){
     e.hp=Math.max(1,e.hp-PERKS.bossEntryDmg);
     addFloat(e.x,e.y-30,`WALL HIT -${PERKS.bossEntryDmg}`,'#FF4400',16);
@@ -983,28 +964,33 @@ function updateEnemies(){
   G.enemies=G.enemies.filter(e=>!e.dead||(e.deathTimer||0)>0);
   G.enemies.forEach(e=>{
     if(e.dead){if(e.deathTimer!==undefined)e.deathTimer--;return;}
+    // Healer enemies
+    if(e.isHealer&&!e.dead){
+      e.healTimer=(e.healTimer||0)+1;
+      if(e.healTimer>=60){
+        e.healTimer=0;
+        G.enemies.forEach(n=>{
+          if(!n.dead&&n!==e&&dist(e,n)<G.tileSize*3){
+            const heal=Math.round(n.maxHp*.03);
+            n.hp=Math.min(n.maxHp,n.hp+heal);
+          }
+        });
+      }
+    }
     if(e.stunned>0){e.stunned--;return;}
     const spd=e.slowed>0?e.speed*.38:e.speed;
     if(e.slowed>0)e.slowed--;
-
-    // End zone moat slow
     const last=G.path[G.path.length-1];
     const distToEnd=Math.sqrt((e.x-(last.col+.5)*G.tileSize)**2+(e.y-(last.row+.5)*G.tileSize)**2);
-    if(PERKS.endZoneSlow>0&&distToEnd<G.tileSize*3){
-      const slow=e.slowed>0?Math.min(e.slowed+2,90):4;
-      e.slowed=slow;
-    }
-    if(PERKS.endZoneDrown&&distToEnd<G.tileSize*1.5&&e.slowed<120){
-      e.slowed=120;
-    }
-
+    if(PERKS.endZoneSlow>0&&distToEnd<G.tileSize*3){e.slowed=Math.max(e.slowed,4);}
+    if(PERKS.endZoneDrown&&distToEnd<G.tileSize*1.5&&e.slowed<120){e.slowed=120;}
     const target=G.path[e.pathIndex+1];
     if(!target){
       let livesLost=e.isFinalBoss?8:e.isBoss?4:e.isElite?2:1;
       if(e.isBoss)livesLost=Math.max(1,livesLost-(PERKS.bossBreachLives||0));
       G.lives=Math.max(0,G.lives-livesLost);
-      updateHUD();blast(e.x,e.y,'#FF0000');
-      addFloat(e.x,e.y-20,`-${livesLost}❤️`,'#FF2200',20);
+      updateHUD();blast(e.x,e.y,'#FF0000');addShake(livesLost*2);
+      addFloat(e.x,e.y-20,`-${livesLost} LIVES`,'#FF2200',20);
       e.dead=true;e.deathTimer=20;G.combo=0;
       document.getElementById('combo-display').className='';
       if(G.lives<=0)setTimeout(gameOver,600);
@@ -1020,12 +1006,34 @@ function updateEnemies(){
 const TARGET_MODES=['first','last','strong','fast'];
 
 function updateTowers(){
+  // Calculate inspire buffs
+  const inspireTowers=G.towers.filter(t=>TOWER_DEFS.find(d=>d.id===t.type)?.special==='inspire');
+  G.towers.forEach(t=>{
+    t.inspired=false;
+    inspireTowers.forEach(it=>{
+      if(it!==t&&dist(it,t)<=it.range){
+        t.inspired=true;
+      }
+    });
+  });
+
   G.towers.forEach(t=>{
     t.fireTimer=(t.fireTimer||0)+1;
     const def=TOWER_DEFS.find(d=>d.id===t.type);
     if(!def||t.fireTimer<t.fireRate)return;
     const live=G.enemies.filter(e=>!e.dead);
-    const inRange=live.filter(e=>dist(t,e)<=t.range);
+    // Can this tower see stealth?
+    const canSee=def.canSeeInvisible||def.special==='reveal';
+    const visible=live.filter(e=>{
+      if(!e.isStealth)return true;
+      if(canSee)return true;
+      // Check if any reveal tower reveals this enemy
+      return G.towers.some(rt=>{
+        const rd=TOWER_DEFS.find(d=>d.id===rt.type);
+        return rd&&(rd.canSeeInvisible||rd.special==='reveal')&&dist(rt,e)<=rt.range;
+      });
+    });
+    const inRange=visible.filter(e=>dist(t,e)<=t.range);
     if(!inRange.length)return;
     const mode=t.targetMode||'first';
     let target;
@@ -1036,7 +1044,8 @@ function updateTowers(){
     if(!target)return;
     t.fireTimer=0;t.attackFlash=1;
 
-    const dmgMult=(PERKS.towerDamageMult||1)*(t.buffed?1.25:1)*((t.level>=2&&PERKS.legendDamage)?PERKS.legendDamage:1);
+    const inspireMult=t.inspired?((TOWER_DEFS.find(d=>d.id==='singletary')?.upgrades[2]&&G.towers.find(it=>it.type==='singletary'&&it.level>=2))?1.3:1.15):1;
+    const dmgMult=(PERKS.towerDamageMult||1)*(t.buffed?1.25:1)*((t.level>=2&&PERKS.legendDamage)?PERKS.legendDamage:1)*inspireMult;
     const actualDmg=Math.round(t.damage*dmgMult);
     const angle=Math.atan2(target.y-t.y,target.x-t.x);
     const aoeR=(def.special==='aoe_melee'?t.range*.85:t.range*.62)*(PERKS.aoeMult||1);
@@ -1045,6 +1054,7 @@ function updateTowers(){
       G.projectiles.push({x:t.x,y:t.y,angle,damage:actualDmg,range:aoeR,color:def.projectileColor,isBlast:true,radius:aoeR,life:20,maxLife:20,dead:false});
       live.forEach(e=>{if(dist(t,e)<=aoeR){dealDmg(e,actualDmg,def);if(PERKS.aoeStun&&Math.random()<.15)e.stunned=60;}});
       explode(t.x+Math.cos(angle)*38,t.y+Math.sin(angle)*38,def.projectileColor);
+      addShake(def.special==='aoe_melee'?3:1.5);
     } else if(def.special==='chain'){
       const cc=t.level>=2?10:t.level===1?5:3;
       let chain=[target],pool=live.filter(e=>e!==target);
@@ -1052,7 +1062,7 @@ function updateTowers(){
       chain.forEach((e,i)=>{
         const d2=Math.round(actualDmg*Math.pow(.78,i)*(t.level>=2?2:1));
         dealDmg(e,d2,def);
-        if(PERKS.slowChain&&def.special==='chain')e.slowed=Math.max(e.slowed,45);
+        if(PERKS.slowChain)e.slowed=Math.max(e.slowed,45);
         G.projectiles.push({x:e.x,y:e.y,angle:0,damage:0,color:'#FFFF44',isLightning:true,life:8,maxLife:8,dead:false});
       });
     } else if(def.special==='multishot'){
@@ -1060,6 +1070,24 @@ function updateTowers(){
       for(let i=0;i<shots;i++)firePrj(t,target,def,angle+(i-(shots-1)/2)*.22,false,actualDmg);
     } else if(def.special==='split'){
       firePrj(t,target,def,angle,true,actualDmg);
+    } else if(def.special==='inspire'){
+      firePrj(t,target,def,angle,false,actualDmg);
+    } else if(def.special==='peanut'){
+      firePrj(t,target,def,angle,false,actualDmg);
+    } else if(def.special==='armorshred'){
+      firePrj(t,target,def,angle,false,actualDmg);
+    } else if(def.special==='rapid'){
+      firePrj(t,target,def,angle,false,actualDmg);
+    } else if(def.special==='leap'){
+      // Leap attack — instant damage + stun
+      dealDmg(target,actualDmg,def);
+      target.stunned=Math.max(target.stunned,45);
+      explode(target.x,target.y,def.projectileColor);
+      addShake(2);
+      // Visual leap line
+      G.projectiles.push({x:target.x,y:target.y,angle:0,damage:0,color:def.projectileColor,isBlast:true,radius:G.tileSize*.8,life:15,maxLife:15,dead:false});
+    } else if(def.special==='reveal'){
+      firePrj(t,target,def,angle,false,actualDmg);
     } else {
       firePrj(t,target,def,angle,false,actualDmg);
     }
@@ -1075,7 +1103,9 @@ function firePrj(tower,target,def,angle,split=false,dmg){
     piercing:def.special==='armorpiercing',
     pierceable:PERKS.projectilePierce,
     slow:def.special==='slow',stun:def.special==='stun',
-    split,splitLevel:0,towerLevel:tower.level,dead:false,
+    peanut:def.special==='peanut',armorshred:def.special==='armorshred',
+    towerType:def.id,towerLevel:tower.level,
+    split,splitLevel:0,dead:false,
   });
 }
 
@@ -1084,18 +1114,21 @@ function updateProjectiles(){
   G.projectiles.forEach(p=>{
     if(p.isBlast||p.isLightning){p.life--;if(p.life<=0)p.dead=true;return;}
     p.x+=p.vx;p.y+=p.vy;
+    // Add trail
+    if(G.frameCount%2===0)G.trails.push({x:p.x,y:p.y,r:p.size*.6||2,color:p.color,life:12,maxLife:12});
     if(p.x<-50||p.x>canvas.width+50||p.y<-50||p.y>canvas.height+50){p.dead=true;return;}
     const live=G.enemies.filter(e=>!e.dead);
     let hits=0;
     for(const e of live){
       if(dist(p,e)<=G.tileSize*.42){
-        const spec=p.stun?'stun':p.slow?'slow':p.piercing?'armorpiercing':'';
-        dealDmg(e,p.damage,{special:spec});
+        const spec=p.stun?'stun':p.slow?'slow':p.piercing?'armorpiercing':p.armorshred?'armorshred':p.peanut?'peanut':'';
+        dealDmg(e,p.damage,{special:spec,towerType:p.towerType,towerLevel:p.towerLevel});
         if(p.split&&p.splitLevel<2){
           const sc=p.towerLevel>=2?6:3;
           for(let i=0;i<sc;i++){const a=(i/sc)*Math.PI*2;G.projectiles.push({x:p.x,y:p.y,vx:Math.cos(a)*5,vy:Math.sin(a)*5,angle:a,damage:Math.round(p.damage*.5),color:p.color,size:3,dead:false,split:false,splitLevel:p.splitLevel+1});}
         }
         hits++;sparks(e.x,e.y,p.color);
+        e.hitFlash=4;
         if(!p.pierceable||hits>=2){p.dead=true;break;}
       }
     }
@@ -1108,15 +1141,35 @@ function dealDmg(enemy,damage,def){
   const pen=PERKS.armorPen||0;
   const effectiveArmor=Math.max(0,(enemy.armor||0)-pen);
   if(def.special!=='armorpiercing'&&effectiveArmor>0)dmg=Math.max(1,damage-effectiveArmor);
-  // Instant kill check (Dent shrine lv3)
-  if(PERKS.instantKillChance&&!enemy.isBoss&&!enemy.isFinalBoss&&Math.random()<PERKS.instantKillChance){
+  // Armor shred
+  if(def.special==='armorshred'&&enemy.armor){
+    const shred=def.towerLevel>=2?enemy.armor:Math.min(10+def.towerLevel*5,enemy.armor);
+    enemy.armor=Math.max(0,enemy.armor-shred);
+    if(shred>0)addFloat(enemy.x,enemy.y-28,`-${shred} ARMOR`,'#AAAAAA',11);
+  }
+  // Peanut punch
+  if(def.special==='peanut'){
+    const chance=def.towerLevel>=2?.5:.3;
+    if(Math.random()<chance){
+      const steal=def.towerLevel>=2?Math.round(enemy.reward*.4):Math.round(enemy.reward*.2);
+      G.coins+=steal;
+      addFloat(enemy.x,enemy.y-28,`PUNCH +${steal}`,'#8B4513',12);
+    }
+  }
+  // Reveal special — chance to instant kill at level 3
+  if(def.special==='reveal'&&def.towerLevel>=2&&!enemy.isBoss&&Math.random()<.15){
+    enemy.hp=0;addFloat(enemy.x,enemy.y-14,'INTERCEPTED!','#00D4FF',14);
+  }
+  // Instant kill check
+  else if(PERKS.instantKillChance&&!enemy.isBoss&&!enemy.isFinalBoss&&Math.random()<PERKS.instantKillChance){
     enemy.hp=0;addFloat(enemy.x,enemy.y-14,'INSTANT KILL!','#FF0000',14);
   } else {
     enemy.hp-=dmg;
   }
   if(def.special==='slow')enemy.slowed=Math.round(95*(PERKS.slowDurMult||1));
   if(def.special==='stun'&&Math.random()<.27*(PERKS.stunChanceMult||1))enemy.stunned=65;
-  if(PERKS.globalStunChance&&Math.random()<PERKS.globalStunChance){G.enemies.filter(e=>!e.dead).forEach(e=>e.stunned=Math.max(e.stunned,40));}
+  if(def.special==='leap')enemy.stunned=Math.max(enemy.stunned,45);
+  if(PERKS.globalStunChance&&Math.random()<PERKS.globalStunChance){G.enemies.filter(e2=>!e2.dead).forEach(e2=>e2.stunned=Math.max(e2.stunned,40));}
   addFloat(enemy.x,enemy.y-14,`-${Math.round(dmg)}`,'#FF5555',12);
   if(enemy.hp<=0)killEnemy(enemy);
 }
@@ -1126,30 +1179,56 @@ function killEnemy(enemy){
   enemy.dead=true;enemy.deathTimer=15;
   const baseReward=Math.round(enemy.reward*(PERKS.rewardMult||1)*(PERKS.coinMult||1));
   const bonusCoins=PERKS.coinBonus||0;
-  G.score+=enemy.reward*2;
-  G.coins+=baseReward+bonusCoins;
-  // Glory: enemy reward as glory
+  G.score+=enemy.reward*2;G.coins+=baseReward+bonusCoins;
   const gloryEarned=Math.ceil(enemy.reward*.5*(enemy.isBoss?3:1));
-  G.glory+=gloryEarned;
-  SF.glory+=gloryEarned;
-  SF.totalGlory+=gloryEarned;
+  G.glory+=gloryEarned;SF.glory+=gloryEarned;SF.totalGlory+=gloryEarned;
   saveStadium();
   G.enemiesRemaining=Math.max(0,G.enemiesRemaining-1);
+  G.totalKills++;G.totalKillsThisWave++;
   G.combo++;G.comboTimer=120;
   if(G.combo>=5){
     const cd=document.getElementById('combo-display');
-    cd.textContent=`${G.combo}× COMBO!`;cd.className='show';
+    cd.textContent=`${G.combo}x COMBO!`;cd.className='show';
     const cb=Math.floor((baseReward*.1)*Math.min(G.combo,20)*(PERKS.comboMult||1));
     G.coins+=cb;G.score+=cb*3;
   }
   updateHUD();updateTowerPanel();
-  blast(enemy.x,enemy.y,enemy.color);
-  addFloat(enemy.x,enemy.y-22,`+${baseReward+bonusCoins}🪙`,'#FFB81C',14);
-  if(gloryEarned>0)addFloat(enemy.x,enemy.y-36,`+${gloryEarned}⭐`,'#FFD560',11);
+  // Death effects
+  if(enemy.isBoss){
+    bossDeathEffect(enemy.x,enemy.y,enemy.color);
+    addShake(8);
+  } else {
+    blast(enemy.x,enemy.y,enemy.color);
+    addShake(1);
+  }
+  addFloat(enemy.x,enemy.y-22,`+${baseReward+bonusCoins}`,'#FFB81C',14);
+  if(gloryEarned>0)addFloat(enemy.x,enemy.y-36,`+${gloryEarned} GLORY`,'#FFD560',11);
   if(enemy.isBoss)addFloat(enemy.x,enemy.y-50,'BOSS DOWN!','#FF4444',22);
+  // Splitter enemies
+  if(enemy.isSplitter&&!enemy.isBoss){
+    for(let i=0;i<2;i++){
+      const child={...enemy,hp:Math.round(enemy.maxHp*.4),maxHp:Math.round(enemy.maxHp*.4),
+        speed:enemy.speed*1.3,reward:Math.round(enemy.reward*.3),
+        isSplitter:false,dead:false,deathTimer:undefined,
+        x:enemy.x+(i===0?-10:10),y:enemy.y,id:Math.random(),
+        bossDisplayName:null,isBoss:false,
+        emoji:enemy.emoji,color:lighten(enemy.color,20)};
+      G.enemies.push(child);
+    }
+    addFloat(enemy.x,enemy.y-60,'SPLIT!','#FF8800',14);
+  }
 }
 
-// ── WAVE MANAGEMENT ──────────────────────────────────────────
+// Boss death — shockwave effect
+function bossDeathEffect(x,y,color){
+  for(let i=0;i<40;i++){const a=(i/40)*Math.PI*2,spd=3+Math.random()*8;G.particles.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,r:3+Math.random()*5,color,life:40+Math.random()*20,maxLife:60});}
+  // Shockwave ring
+  for(let r2=0;r2<3;r2++){
+    G.projectiles.push({x,y,angle:0,damage:0,color,isBlast:true,radius:80+r2*40,life:25+r2*5,maxLife:25+r2*5,dead:false});
+  }
+}
+
+// WAVE MANAGEMENT
 function buildQueue(waveData){
   const queue=[];
   const hpMult=(1+(G.wave-1)*.12)*(PERKS.enemyHpMult||1);
@@ -1160,20 +1239,12 @@ function buildQueue(waveData){
 }
 
 function doWaveStartBlasts(){
-  const blasts=PERKS.waveStartBlast||0;
-  if(!blasts)return;
+  const blasts=PERKS.waveStartBlast||0;if(!blasts)return;
   for(let b=0;b<blasts;b++){
     setTimeout(()=>{
       const live=G.enemies.filter(e=>!e.dead);
-      live.forEach(e=>{
-        const dmg=80;
-        e.hp-=dmg;
-        addFloat(e.x,e.y-20,`-${dmg}💣`,'#FF6600',13);
-        if(e.hp<=0)killEnemy(e);
-        sparks(e.x,e.y,'#FF8800');
-      });
-      const cx=canvas.width/2,cy=canvas.height/2;
-      explode(cx,cy,'#FF6600');
+      live.forEach(e=>{e.hp-=80;addFloat(e.x,e.y-20,'-80','#FF6600',13);if(e.hp<=0)killEnemy(e);sparks(e.x,e.y,'#FF8800');});
+      explode(canvas.width/2,canvas.height/2,'#FF6600');addShake(4);
     },b*800+400);
   }
 }
@@ -1184,18 +1255,14 @@ function startWave(){
   const wIdx=(G.wave-1)%WAVES.length;const wave=WAVES[wIdx];
   G.spawnQueue=buildQueue(wave);
   G.enemiesRemaining=G.spawnQueue.length;G.spawnTimer=0;G.spawnInterval=50;G.waveActive=true;
-
-  // Wave buff towers
+  G.totalKillsThisWave=0;
   const buffCount=PERKS.waveBuffTowers||0;
   G.towers.forEach(t=>t.buffed=false);
   if(buffCount>0&&G.towers.length>0){
     const shuffled=[...G.towers].sort(()=>Math.random()-.5);
     for(let i=0;i<Math.min(buffCount,shuffled.length);i++)shuffled[i].buffed=true;
   }
-
-  // Start blasts (after some enemies spawn)
   setTimeout(doWaveStartBlasts,1500);
-
   const ann=document.getElementById('wave-announce');
   ann.innerHTML=`WAVE ${G.wave}: ${wave.emoji} ${wave.team}<span class="sub-line">${wave.intro||''}</span>`;
   ann.className='show';setTimeout(()=>ann.className='',3000);
@@ -1204,25 +1271,23 @@ function startWave(){
 
 function waveComplete(){
   if(!G.waveActive)return;
-  G.waveActive=false;G.enemies=[];G.projectiles=[];
+  G.waveActive=false;G.enemies=[];G.projectiles=[];G.trails=[];
   document.getElementById('boss-bar-wrap').style.display='none';
+  document.getElementById('wave-progress-fill').style.width='100%';
   G.towers.forEach(t=>t.buffed=false);
-
   const baseBonus=60+G.wave*12;
   const bonus=Math.round(baseBonus*(PERKS.waveCoinMult||1))+(PERKS.waveBonus||0);
   G.coins+=bonus;G.score+=bonus*3;
   const gloryBonus=Math.ceil(bonus*.3);
   G.glory+=gloryBonus;SF.glory+=gloryBonus;SF.totalGlory+=gloryBonus;
   saveStadium();updateHUD();
-
   const wIdx=(G.wave-1)%WAVES.length;const wave=WAVES[wIdx];
   const isFinal=wave.isFinalWave||G.wave>=G.totalWaves;
-  document.getElementById('wc-emoji').textContent=isFinal?'🏆':wave.emoji;
-  document.getElementById('wc-team').textContent=`${wave.emoji} ${wave.team} DEFEATED!`;
+  document.getElementById('wc-emoji').textContent=isFinal?'\u{1F3C6}\u{1F43B}\u{1F3C6}':wave.emoji;
+  document.getElementById('wc-team').textContent=`${wave.team} DEFEATED!`;
   document.getElementById('wc-rewards').innerHTML=`
-    <div>+${bonus} bonus coins 🪙</div>
-    <div>+${gloryBonus} glory ⭐</div>
-    <div style="margin-top:4px;font-size:11px;color:rgba(240,240,240,.4);">Wave ${G.wave}/${G.totalWaves} complete · Total Glory: ${SF.glory}</div>
+    <div>+${bonus} Coins | +${gloryBonus} Glory</div>
+    <div style="margin-top:4px;color:var(--gold)">Kills: ${G.totalKillsThisWave} | Score: ${G.score.toLocaleString()}</div>
   `;
   if(isFinal){setTimeout(()=>{hideOL('wc-overlay');showVictory();},200);}
   showOL('wc-overlay');
@@ -1231,10 +1296,11 @@ function waveComplete(){
 function nextWave(){
   hideOL('wc-overlay');G.wave++;updateHUD();
   const btn=document.getElementById('start-wave-btn');btn.disabled=false;
-  btn.textContent=`🏈 START WAVE ${G.wave}`;
+  btn.textContent=`START WAVE ${G.wave}`;
+  document.getElementById('wave-progress-fill').style.width='0%';
 }
 
-// ── TOWER PLACEMENT ──────────────────────────────────────────
+// TOWER PLACEMENT
 function handleTap(e){
   e.preventDefault();
   const rect=canvas.getBoundingClientRect();
@@ -1249,7 +1315,7 @@ function handleTap(e){
       const def=TOWER_DEFS.find(d=>d.id===G.selectedTowerType);
       const cost=Math.round((def?.cost||0)*(PERKS.towerCostMult||1));
       if(def&&G.coins>=cost)placeTower(G.selectedTowerType,col,row);
-      else addFloat(cx3,cy3,'❌ NOT ENOUGH COINS','#FF4444',14);
+      else addFloat(cx3,cy3,'NOT ENOUGH COINS','#FF4444',14);
     }
     G.selectedTowerType=null;clearCardSel();updateTowerPanel();return;
   }
@@ -1265,7 +1331,7 @@ function placeTower(type,col,row){
   G.coins-=cost;
   const t={type,col,row,x:(col+.5)*G.tileSize,y:(row+.5)*G.tileSize,
     damage:def.damage,range:actualRange,fireRate:def.fireRate,
-    fireTimer:0,level:0,totalCost:cost,attackFlash:0,targetMode:'first',buffed:false};
+    fireTimer:0,level:0,totalCost:cost,attackFlash:0,targetMode:'first',buffed:false,inspired:false};
   G.towers.push(t);G.placedSet.add(`${col},${row}`);
   updateHUD();updateTowerPanel();explode(t.x,t.y,def.projectileColor);
 }
@@ -1297,10 +1363,10 @@ function sellTower(){
   const pct=PERKS.sellRefund||.6;const refund=Math.round(t.totalCost*pct);
   G.coins+=refund;G.towers=G.towers.filter(x=>x!==t);G.placedSet.delete(`${t.col},${t.row}`);
   G.selectedPlacedTower=null;updateHUD();updateTowerPanel();
-  addFloat(t.x,t.y,`+${refund}🪙 SOLD`,'#FFB81C',16);
+  addFloat(t.x,t.y,`+${refund} SOLD`,'#FFB81C',16);
 }
 
-// ── HUD ──────────────────────────────────────────────────────
+// HUD
 function updateHUD(){
   const lv=document.getElementById('hud-lives');
   lv.textContent=G.lives;lv.className=G.lives<=5?'hud-val danger':G.lives<=10?'hud-val warn':'hud-val';
@@ -1315,7 +1381,7 @@ function updateBossBar(){
   if(!bosses.length){document.getElementById('boss-bar-wrap').style.display='none';return;}
   const boss=bosses.sort((a,b)=>b.maxHp-a.maxHp)[0];
   document.getElementById('boss-bar-wrap').style.display='block';
-  document.getElementById('boss-name').textContent=`⚠️ ${boss.bossDisplayName||boss.type}`;
+  document.getElementById('boss-name').textContent=`${boss.bossDisplayName||boss.type}`;
   document.getElementById('boss-hp-text').textContent=`${Math.max(0,Math.round(boss.hp)).toLocaleString()} / ${boss.maxHp.toLocaleString()}`;
   document.getElementById('boss-bar-fill').style.width=Math.max(0,boss.hp/boss.maxHp*100)+'%';
 }
@@ -1324,8 +1390,10 @@ function buildTowerPanel(){
   const scroll=document.getElementById('tower-scroll');
   scroll.innerHTML='<div id="tower-info"></div>';
   TOWER_DEFS.forEach(def=>{
-    const card=document.createElement('div');card.className='tower-card';card.id=`card-${def.id}`;
-    card.innerHTML=`<div class="tower-emoji">${def.emoji}</div><div class="tower-name">${def.name.split(' ').pop()}</div><div class="tower-cost">🪙${Math.round(def.cost*(PERKS.towerCostMult||1))}</div>`;
+    const card=document.createElement('div');
+    card.className='tower-card'+(def.rarity==='epic'?' rarity-epic':def.rarity==='legendary'?' rarity-legendary':'');
+    card.id=`card-${def.id}`;
+    card.innerHTML=`<div class="tower-emoji">${def.emoji}</div><div class="tower-name">${def.name.split(' ').pop()}</div><div class="tower-cost">${Math.round(def.cost*(PERKS.towerCostMult||1))}</div>`;
     card.addEventListener('click',()=>selectTowerType(def.id));
     card.addEventListener('touchend',e=>{e.preventDefault();selectTowerType(def.id);});
     let pt;card.addEventListener('touchstart',()=>{pt=setTimeout(()=>showTowerInfo(def),420);});
@@ -1339,7 +1407,8 @@ function buildTowerPanel(){
 
 function showTowerInfo(def){
   const ti=document.getElementById('tower-info');if(!ti)return;
-  ti.innerHTML=`<h3>${def.emoji} ${def.name}</h3><div class="ti-num">${def.number} · ${def.role}</div><p>${def.desc}</p><div class="ti-grid"><span class="ti-lbl">Damage</span><span class="ti-val">${def.damage}</span><span class="ti-lbl">Range</span><span class="ti-val">${def.range}</span><span class="ti-lbl">Fire/s</span><span class="ti-val">${(60/def.fireRate).toFixed(1)}</span><span class="ti-lbl">Cost</span><span class="ti-val">🪙${Math.round(def.cost*(PERKS.towerCostMult||1))}</span></div><div class="ti-ability">⚡ ${def.upgrades[2]?.specialUpgrade||'3x upgradeable'}</div>`;
+  const rarityColor=def.rarity==='legendary'?'var(--gold)':def.rarity==='epic'?'var(--purple)':'var(--orange)';
+  ti.innerHTML=`<h3 style="color:${rarityColor}">${def.emoji} ${def.name}</h3><div class="ti-num">${def.number} - ${def.role} - ${def.rarity.toUpperCase()}</div><p>${def.desc}</p><div class="ti-grid"><span class="ti-lbl">Damage</span><span class="ti-val">${def.damage}</span><span class="ti-lbl">Range</span><span class="ti-val">${def.range}</span><span class="ti-lbl">Fire/s</span><span class="ti-val">${(60/def.fireRate).toFixed(1)}</span><span class="ti-lbl">Cost</span><span class="ti-val">${Math.round(def.cost*(PERKS.towerCostMult||1))}</span></div><div class="ti-ability">${def.upgrades[2]?.specialUpgrade||'3x upgradeable'}</div>`;
   ti.className='visible';
 }
 function hideTowerInfo(){const ti=document.getElementById('tower-info');if(ti)ti.className='';}
@@ -1365,11 +1434,11 @@ function updateTowerPanel(){
     const t=G.selectedPlacedTower;const def=TOWER_DEFS.find(d=>d.id===t.type);
     const canUp=def&&t.level<def.upgrades.length;
     upBtn.style.display='block';
-    if(canUp){const up=def.upgrades[t.level];upBtn.textContent=`⬆ LV${t.level+2} (🪙${up.cost})`;upBtn.style.opacity=G.coins>=up.cost?'1':'.5';}
-    else{upBtn.textContent='✅ MAX';upBtn.style.opacity='.55';}
-    sellBtn.style.display='block';sellBtn.textContent=`💰 SELL (🪙${Math.round(t.totalCost*(PERKS.sellRefund||.6))})`;
+    if(canUp){const up=def.upgrades[t.level];upBtn.textContent=`UP LV${t.level+2} (${up.cost})`;upBtn.style.opacity=G.coins>=up.cost?'1':'.5';}
+    else{upBtn.textContent='MAX';upBtn.style.opacity='.55';}
+    sellBtn.style.display='block';sellBtn.textContent=`SELL (${Math.round(t.totalCost*(PERKS.sellRefund||.6))})`;
     tgBtn.style.display='block';
-    const modeLabels={first:'🎯 FIRST',last:'🏁 LAST',strong:'💪 STRONG',fast:'⚡ FAST'};
+    const modeLabels={first:'FIRST',last:'LAST',strong:'STRONG',fast:'FAST'};
     tgBtn.textContent=modeLabels[t.targetMode||'first'];
     wvBtn.style.flex='0';wvBtn.style.minWidth='90px';
   } else {
@@ -1378,17 +1447,29 @@ function updateTowerPanel(){
   }
 }
 
-// ── PARTICLES ─────────────────────────────────────────────────
+// PARTICLES
 function blast(x,y,color){for(let i=0;i<14;i++){const a=(i/14)*Math.PI*2,spd=2+Math.random()*3.5;G.particles.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,r:2+Math.random()*3,color,life:32+Math.random()*18,maxLife:50});}}
 function explode(x,y,color){for(let i=0;i<22;i++){const a=(i/22)*Math.PI*2,spd=1+Math.random()*6;G.particles.push({x,y,vx:Math.cos(a)*spd,vy:Math.sin(a)*spd,r:2+Math.random()*4.5,color,life:28+Math.random()*20,maxLife:48});}}
 function sparks(x,y,color){for(let i=0;i<6;i++){const a=Math.random()*Math.PI*2;G.particles.push({x,y,vx:Math.cos(a)*(1+Math.random()*2.5),vy:Math.sin(a)*(1+Math.random()*2.5),r:1.5,color,life:14,maxLife:14});}}
 function addFloat(x,y,text,color,size){G.floaters.push({x,y,text,color,size:size||14,life:62,maxLife:62,vy:-.85});}
-function updateParticles(){G.particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.1;p.life--;});G.particles=G.particles.filter(p=>p.life>0);G.floaters.forEach(f=>{f.y+=f.vy;f.life--;});G.floaters=G.floaters.filter(f=>f.life>0);}
+function updateParticles(){
+  G.particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.1;p.life--;});
+  G.particles=G.particles.filter(p=>p.life>0);
+  G.trails.forEach(t=>{t.life--;});
+  G.trails=G.trails.filter(t=>t.life>0);
+  G.floaters.forEach(f=>{f.y+=f.vy;f.life--;});
+  G.floaters=G.floaters.filter(f=>f.life>0);
+}
 
-// ── SPEED / OVERLAYS ──────────────────────────────────────────
-function toggleSpeed(){G.speed=G.speed===1?2:G.speed===2?3:1;const btn=document.getElementById('speed-btn');btn.textContent=`⏩×${G.speed}`;btn.className=G.speed===3?'turbo':G.speed===2?'fast':'';}
+// SPEED / PAUSE / OVERLAYS
+function toggleSpeed(){G.speed=G.speed===1?2:G.speed===2?3:1;const btn=document.getElementById('speed-btn');btn.textContent=`x${G.speed}`;btn.className=G.speed===3?'turbo':G.speed===2?'fast':'';}
+function togglePause(){
+  G.paused=!G.paused;
+  document.getElementById('pause-btn').className=G.paused?'paused':'';
+  document.getElementById('pause-overlay').style.display=G.paused?'flex':'none';
+}
 
-function gameOver(){G.running=false;G.waveActive=false;document.getElementById('go-score').textContent=G.score.toLocaleString();document.getElementById('go-info').textContent=`Survived ${G.wave} wave${G.wave!==1?'s':''} before enemy scored`;saveBest();showOL('go-overlay');}
+function gameOver(){G.running=false;G.waveActive=false;document.getElementById('go-score').textContent=G.score.toLocaleString();document.getElementById('go-info').textContent=`Survived ${G.wave} wave${G.wave!==1?'s':''} | ${G.totalKills} kills`;saveBest();showOL('go-overlay');}
 function showVictory(){G.running=false;document.getElementById('vic-score').textContent=G.score.toLocaleString();saveBest();showOL('vic-overlay');}
 function saveBest(){const p=parseInt(localStorage.getItem('bears_best')||'0');if(G.score>p)localStorage.setItem('bears_best',G.score);}
 
@@ -1401,19 +1482,21 @@ function startGame(){
 
 function initGame(){
   PERKS=computePerks();
-  const extraLives=PERKS.startLives||0;const extraCoins=PERKS.startCoins||0;
-  G.lives=20+extraLives;G.coins=200+extraCoins;G.wave=1;G.score=0;G.glory=0;
-  G.running=true;G.waveActive=false;G.speed=1;
+  G.lives=20+(PERKS.startLives||0);G.coins=200+(PERKS.startCoins||0);G.wave=1;G.score=0;G.glory=0;
+  G.running=true;G.waveActive=false;G.speed=1;G.paused=false;
   G.selectedTowerType=null;G.selectedPlacedTower=null;
-  G.towers=[];G.enemies=[];G.projectiles=[];G.particles=[];G.floaters=[];
+  G.towers=[];G.enemies=[];G.projectiles=[];G.particles=[];G.floaters=[];G.trails=[];
   G.spawnQueue=[];G.spawnTimer=0;G.enemiesRemaining=0;G.frameCount=0;G.combo=0;G.comboTimer=0;
-  G.placedSet=new Set();
+  G.totalKills=0;G.totalKillsThisWave=0;
+  G.placedSet=new Set();G.screenShake={x:0,y:0,intensity:0};
   document.getElementById('boss-bar-wrap').style.display='none';
   document.getElementById('combo-display').className='';
-  document.getElementById('speed-btn').textContent='⏩×1';document.getElementById('speed-btn').className='';
+  document.getElementById('pause-overlay').style.display='none';
+  document.getElementById('pause-btn').className='';
+  document.getElementById('speed-btn').textContent='x1';document.getElementById('speed-btn').className='';
+  document.getElementById('wave-progress-fill').style.width='0%';
   resizeCanvas();buildTowerPanel();updateHUD();
-  const btn=document.getElementById('start-wave-btn');btn.disabled=false;btn.textContent='🏈 START WAVE 1';
-  // Free tower perk
+  const btn=document.getElementById('start-wave-btn');btn.disabled=false;btn.textContent='START WAVE 1';
   if(PERKS.freeTower){
     setTimeout(()=>{
       const free=TOWER_DEFS[Math.floor(Math.random()*TOWER_DEFS.length)];
@@ -1432,358 +1515,131 @@ function hideOL(id){const el=document.getElementById(id);if(el)el.style.display=
 function showHowTo(){document.getElementById('howto-screen').style.display='flex';}
 function hideHowTo(){document.getElementById('howto-screen').style.display='none';}
 
-// ── UTILS ─────────────────────────────────────────────────────
+// UTILS
 function dist(a,b){return Math.sqrt((a.x-b.x)**2+(a.y-b.y)**2);}
-function lighten(hex,amt){const n=parseInt(hex.replace('#',''),16);const r=Math.min(255,(n>>16)+amt),g=Math.min(255,((n>>8)&0xFF)+amt),b=Math.min(255,(n&0xFF)+amt);return `rgb(${r},${g},${b})`;}
+function lighten(hex,amt){try{const n=parseInt(hex.replace('#',''),16);const r=Math.min(255,(n>>16)+amt),g=Math.min(255,((n>>8)&0xFF)+amt),b2=Math.min(255,(n&0xFF)+amt);return`rgb(${r},${g},${b2})`;}catch(e){return hex;}}
 
-// ═══════════════════════════════════════════════════════════════
-//  STADIUM BUILDER
-// ═══════════════════════════════════════════════════════════════
+// STADIUM BUILDER
 const stadiumCanvas=document.getElementById('stadiumCanvas');
 const sctx=stadiumCanvas.getContext('2d');
 
-function openStadiumBuilder(){
-  document.getElementById('stadium-screen').style.display='flex';
-  renderStadiumBuilder();
-}
-
-function closeStadiumBuilder(){
-  document.getElementById('stadium-screen').style.display='none';
-  // Refresh perks
-  PERKS=computePerks();
-  // Update tower panel with new costs
-  if(document.getElementById('game-screen').style.display==='flex'){buildTowerPanel();}
-}
+function openStadiumBuilder(){document.getElementById('stadium-screen').style.display='flex';renderStadiumBuilder();}
+function closeStadiumBuilder(){document.getElementById('stadium-screen').style.display='none';PERKS=computePerks();if(document.getElementById('game-screen').style.display==='flex'){buildTowerPanel();}}
 
 function purchaseUpgrade(id){
   const upg=STADIUM_UPGRADES.find(u=>u.id===id);if(!upg)return;
-  const lvl=SF.sections[id]||0;
-  if(lvl>=upg.maxLevel)return;
+  const lvl=SF.sections[id]||0;if(lvl>=upg.maxLevel)return;
   const cost=Math.round(upg.baseCost*Math.pow(upg.costMult,lvl));
-  if(SF.glory<cost){
-    // Flash red
-    const el=document.getElementById(`upg-${id}`);
-    if(el){el.style.borderColor='rgba(255,50,50,.8)';setTimeout(()=>{el.style.borderColor='';},400);}
-    return;
-  }
-  SF.glory-=cost;
-  SF.sections[id]=(SF.sections[id]||0)+1;
-  saveStadium();
-  PERKS=computePerks();
-  renderStadiumBuilder();
+  if(SF.glory<cost){const el=document.getElementById(`upg-${id}`);if(el){el.style.borderColor='rgba(255,50,50,.8)';setTimeout(()=>{el.style.borderColor='';},400);}return;}
+  SF.glory-=cost;SF.sections[id]=(SF.sections[id]||0)+1;
+  saveStadium();PERKS=computePerks();renderStadiumBuilder();
   if(document.getElementById('game-screen').style.display==='flex'){updateHUD();}
 }
 
 function renderStadiumBuilder(){
-  const glory=SF.glory;
-  document.getElementById('sf-glory-val').textContent=glory.toLocaleString();
+  document.getElementById('sf-glory-val').textContent=SF.glory.toLocaleString();
   document.getElementById('sf-glory-total').textContent=SF.totalGlory.toLocaleString();
-  // Stats
   const totalSections=Object.values(SF.sections).reduce((a,b)=>a+b,0);
   document.getElementById('sf-stat-sections').textContent=totalSections;
   document.getElementById('sf-stat-capacity').textContent=Math.round(totalSections*2800+1000).toLocaleString();
   const p=computePerks();
   const perkCount=Object.keys(p).filter(k=>typeof p[k]==='boolean'?p[k]:typeof p[k]==='number'?p[k]!==0&&p[k]!==1&&p[k]!==0.6:false).length;
   document.getElementById('sf-stat-perks').textContent=perkCount;
-  const spent=SF.totalGlory-SF.glory;document.getElementById('sf-stat-glory-spent').textContent=spent.toLocaleString();
-  // Level
+  document.getElementById('sf-stat-glory-spent').textContent=(SF.totalGlory-SF.glory).toLocaleString();
   const lvls=['Empty Lot','Training Grounds','Community Field','College Stadium','NFL Facility','New Soldier Field','FORTRESS SUPREME'];
   const lvl=Math.min(6,Math.floor(totalSections/3));
   document.getElementById('sf-level-display').textContent=lvl+1;
   document.getElementById('sf-level-name').textContent=lvls[lvl]||lvls[6];
-  // Active perks list
-  const perkDiv=document.getElementById('sf-perk-list');
-  perkDiv.innerHTML='';
+  const perkDiv=document.getElementById('sf-perk-list');perkDiv.innerHTML='';
+  const perkData2={
+    foundation:[[],['startLives',1],['startLives',2,'startCoins',25],['enemyHpMult',.95],['startLives',5,'startCoins',75]],
+    locker_room:[[],['towerDamageMult',1.05],['towerDamageMult',1.08],['towerDamageMult',1.12]],
+    field_turf:[[],['enemySpeedMult',.95],['enemySpeedMult',.92],['enemySpeedMult',.88]],
+    south_stands:[[],['coinBonus',5],['coinBonus',8],['coinBonus',15],['coinMult',1.25]],
+    north_stands:[[],['coinBonus',5],['rewardMult',1.1],['waveBonus',40],['waveCoinMult',1.5]],
+    press_box:[[],['showHpBars',true],['bossWarning',true],['comboMult',1.5]],
+    bear_statues:[[],['rangeMult',1.05],['rangeMult',1.1],['rangeMult',1.15,'towerCostMult',.95],['rangeMult',1.2,'towerCostMult',.9]],
+    fog_cannons:[[],['entrySlowDur',1],['entrySlowDur',2],['entrySlowAll',true]],
+    wind_tunnel:[[],['projectileSpeed',1.1],['projectileSpeed',1.18],['projectilePierce',true]],
+    hot_dogs:[[],['waveBonus',30],['waveBonus',55],['waveBonus',80,'startLives',2]],
+    bear_merch:[[],['coinMult',1.05],['coinMult',1.1],['coinMult',1.15,'sellRefund',.7]],
+    hall_of_fame:[[],['waveBuffTowers',1],['waveBuffTowers',2],['legendDamage',1.2],['freeTower',true]],
+    bear_wall:[[],['bossBreachLives',1],['bossBreachLives',2],['bossEntryDmg',200],['endZonePenalty',true]],
+    cannon_towers:[[],['waveStartBlast',1],['waveStartBlast',2],['waveStartBlast',3]],
+    moat:[[],['endZoneSlow',.15],['endZoneSlow',.25],['endZoneDrown',true]],
+    payton_shrine:[[],['slowDurMult',1.2],['slowDurMult',1.35],['slowChain',true]],
+    urlacher_shrine:[[],['aoeMult',1.15],['aoeMult',1.25],['aoeStun',true]],
+    dent_shrine:[[],['armorPen',5],['armorPen',15],['instantKillChance',.1]],
+    ditka_shrine:[[],['stunChanceMult',1.15],['stunChanceMult',1.25],['globalStunChance',.05]],
+  };
   STADIUM_UPGRADES.forEach(upg=>{
     const l=SF.sections[upg.id]||0;if(!l)return;
-    const perkData={
-      foundation:[[],['startLives',1],['startLives',2,'startCoins',25],['enemyHpMult',.95],['startLives',5,'startCoins',75]],
-      locker_room:[[],['towerDamageMult',1.05],['towerDamageMult',1.08],['towerDamageMult',1.12]],
-      field_turf:[[],['enemySpeedMult',.95],['enemySpeedMult',.92],['enemySpeedMult',.88]],
-      south_stands:[[],['coinBonus',5],['coinBonus',8],['coinBonus',15],['coinMult',1.25]],
-      north_stands:[[],['coinBonus',5],['rewardMult',1.1],['waveBonus',40],['waveCoinMult',1.5]],
-      press_box:[[],['showHpBars',true],['bossWarning',true],['comboMult',1.5]],
-      bear_statues:[[],['rangeMult',1.05],['rangeMult',1.1],['rangeMult',1.15,'towerCostMult',.95],['rangeMult',1.2,'towerCostMult',.9]],
-      fog_cannons:[[],['entrySlowDur',1],['entrySlowDur',2],['entrySlowAll',true]],
-      wind_tunnel:[[],['projectileSpeed',1.1],['projectileSpeed',1.18],['projectilePierce',true]],
-      hot_dogs:[[],['waveBonus',30],['waveBonus',55],['waveBonus',80,'startLives',2]],
-      bear_merch:[[],['coinMult',1.05],['coinMult',1.1],['coinMult',1.15,'sellRefund',.7]],
-      hall_of_fame:[[],['waveBuffTowers',1],['waveBuffTowers',2],['legendDamage',1.2],['freeTower',true]],
-      bear_wall:[[],['bossBreachLives',1],['bossBreachLives',2],['bossEntryDmg',200],['endZonePenalty',true]],
-      cannon_towers:[[],['waveStartBlast',1],['waveStartBlast',2],['waveStartBlast',3]],
-      moat:[[],['endZoneSlow',.15],['endZoneSlow',.25],['endZoneDrown',true]],
-      payton_shrine:[[],['slowDurMult',1.2],['slowDurMult',1.35],['slowChain',true]],
-      urlacher_shrine:[[],['aoeMult',1.15],['aoeMult',1.25],['aoeStun',true]],
-      dent_shrine:[[],['armorPen',5],['armorPen',15],['instantKillChance',.1]],
-      ditka_shrine:[[],['stunChanceMult',1.15],['stunChanceMult',1.25],['globalStunChance',.05]],
-    };
-    const pd=perkData[upg.id];
-    if(pd){
-      for(let ll=1;ll<=l;ll++){
-        const arr=pd[ll]||[];
-        for(let i=0;i<arr.length;i+=2){
-          const pKey=arr[i],pVal=arr[i+1];
-          const fn=PERK_LABELS[pKey];
-          if(fn){const tag=document.createElement('div');tag.className='perk-tag';tag.textContent=`${upg.emoji} ${fn(pVal)}`;perkDiv.appendChild(tag);}
-        }
-      }
+    const pd=perkData2[upg.id];if(pd){
+      for(let ll=1;ll<=l;ll++){const arr=pd[ll]||[];for(let i=0;i<arr.length;i+=2){const fn=PERK_LABELS[arr[i]];if(fn){const tag=document.createElement('div');tag.className='perk-tag';tag.textContent=`${upg.emoji} ${fn(arr[i+1])}`;perkDiv.appendChild(tag);}}}
     }
   });
   if(!perkDiv.children.length){perkDiv.innerHTML='<div style="font-size:11px;color:rgba(240,240,240,.35);padding:4px;">Build sections to earn perks</div>';}
-  // Glory level bar
-  const nextLevelGlory=(lvl+1)*180;
-  const curLevelGlory=lvl*180;
+  const nextLevelGlory=(lvl+1)*180,curLevelGlory=lvl*180;
   const prog=Math.min(100,Math.max(0,(SF.totalGlory-curLevelGlory)/(nextLevelGlory-curLevelGlory)*100));
   document.getElementById('stadium-glory-fill').style.width=prog+'%';
   document.getElementById('stadium-glory-label').textContent=`GLORY TO NEXT LEVEL: ${Math.max(0,nextLevelGlory-SF.totalGlory).toLocaleString()}`;
-  // Render upgrade list
-  renderUpgradeList();
-  // Render stadium canvas
-  drawStadiumCanvas();
+  renderUpgradeList();drawStadiumCanvas();
 }
 
 function renderUpgradeList(){
-  const list=document.getElementById('upg-list');
-  list.innerHTML='';
+  const list=document.getElementById('upg-list');list.innerHTML='';
   const cats=[...new Set(STADIUM_UPGRADES.map(u=>u.cat))];
   cats.forEach(cat=>{
     const catDiv=document.createElement('div');catDiv.className='upg-category';
-    const label=document.createElement('div');label.className='upg-cat-label';label.textContent=cat;
-    catDiv.appendChild(label);
+    const label=document.createElement('div');label.className='upg-cat-label';label.textContent=cat;catDiv.appendChild(label);
     STADIUM_UPGRADES.filter(u=>u.cat===cat).forEach(upg=>{
-      const lvl=SF.sections[upg.id]||0;
-      const maxed=lvl>=upg.maxLevel;
-      const nextCost=maxed?0:Math.round(upg.baseCost*Math.pow(upg.costMult,lvl));
+      const lvl2=SF.sections[upg.id]||0;const maxed=lvl2>=upg.maxLevel;
+      const nextCost=maxed?0:Math.round(upg.baseCost*Math.pow(upg.costMult,lvl2));
       const canAfford=!maxed&&SF.glory>=nextCost;
-      const item=document.createElement('div');
-      item.className='upg-item'+(maxed?' maxed':'');
-      item.id=`upg-${upg.id}`;
-      item.innerHTML=`
-        <div class="ui-top">
-          <div class="ui-name">${upg.emoji} ${upg.name}</div>
-          <div class="ui-level">${lvl}/${upg.maxLevel}</div>
-        </div>
-        <div class="ui-desc">${lvl<upg.maxLevel?upg.desc[lvl]:(upg.desc[upg.maxLevel-1]+' ✅')}</div>
-        ${maxed?'<div class="ui-cost" style="color:var(--gold)">MAX LEVEL ⭐</div>':`<div class="ui-cost ${canAfford?'':'cant'}">🌟 ${nextCost.toLocaleString()} Glory</div>`}
-        <div class="upg-bar"><div class="upg-bar-fill" style="width:${(lvl/upg.maxLevel*100)}%"></div></div>
-      `;
-      if(!maxed){item.addEventListener('click',()=>purchaseUpgrade(upg.id));item.addEventListener('touchend',e=>{e.preventDefault();purchaseUpgrade(upg.id);});}
+      const item=document.createElement('div');item.className='upg-item'+(maxed?' maxed':'');item.id=`upg-${upg.id}`;
+      item.innerHTML=`<div class="ui-top"><div class="ui-name">${upg.emoji} ${upg.name}</div><div class="ui-level">${lvl2}/${upg.maxLevel}</div></div><div class="ui-desc">${lvl2<upg.maxLevel?upg.desc[lvl2]:(upg.desc[upg.maxLevel-1]+' DONE')}</div>${maxed?'<div class="ui-cost" style="color:var(--gold)">MAX LEVEL</div>':`<div class="ui-cost ${canAfford?'':'cant'}">${nextCost.toLocaleString()} Glory</div>`}<div class="upg-bar"><div class="upg-bar-fill" style="width:${(lvl2/upg.maxLevel*100)}%"></div></div>`;
+      if(!maxed){item.addEventListener('click',()=>purchaseUpgrade(upg.id));item.addEventListener('touchend',ev=>{ev.preventDefault();purchaseUpgrade(upg.id);});}
       catDiv.appendChild(item);
     });
     list.appendChild(catDiv);
   });
 }
 
-// ── STADIUM CANVAS DRAWING ────────────────────────────────────
 function drawStadiumCanvas(){
-  const sw=stadiumCanvas.parentElement.clientWidth||360;
-  const sh=Math.round(sw*10/16);
+  const sw=stadiumCanvas.parentElement.clientWidth||360,sh=Math.round(sw*10/16);
   stadiumCanvas.width=sw;stadiumCanvas.height=sh;
-  const s=SF.sections;
-  const W=sw,H=sh;
-
-  // Sky gradient
-  const sky=sctx.createLinearGradient(0,0,0,H);
-  sky.addColorStop(0,'#0a0f1e');sky.addColorStop(1,'#1a3060');
+  const s=SF.sections,W=sw,H=sh;
+  const sky=sctx.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#0a0f1e');sky.addColorStop(1,'#1a3060');
   sctx.fillStyle=sky;sctx.fillRect(0,0,W,H);
-
-  // Stars
   sctx.fillStyle='rgba(255,255,255,.5)';
-  [[W*.1,H*.1],[W*.3,H*.05],[W*.55,H*.08],[W*.75,H*.12],[W*.9,H*.06],[W*.2,H*.18],[W*.85,H*.2]].forEach(([x,y])=>{sctx.beginPath();sctx.arc(x,y,1,0,Math.PI*2);sctx.fill();});
-
-  // Chicago skyline silhouette (simple)
+  [[W*.1,H*.1],[W*.3,H*.05],[W*.55,H*.08],[W*.75,H*.12],[W*.9,H*.06]].forEach(([x,y])=>{sctx.beginPath();sctx.arc(x,y,1,0,Math.PI*2);sctx.fill();});
   sctx.fillStyle='rgba(5,10,25,.9)';
-  const sky2=[[0,.5],[.05,.5],[.05,.35],[.08,.35],[.08,.28],[.1,.28],[.1,.35],[.13,.35],[.13,.3],[.15,.22],[.17,.3],[.19,.3],[.19,.38],[.23,.38],[.23,.32],[.25,.25],[.27,.32],[.29,.32],[.29,.42],[.35,.42],[.35,.36],[.38,.36],[.38,.42],[.42,.42],[.42,.38],[.45,.3],[.48,.38],[.5,.38],[.5,.45],[1,.45],[1,.5]];
-  sctx.beginPath();sky2.forEach(([x,y],i)=>i===0?sctx.moveTo(x*W,y*H):sctx.lineTo(x*W,y*H));sctx.closePath();sctx.fill();
-
-  // Lake Michigan
-  const lakeLvl=s['moat']||0;
-  const lakeGrad=sctx.createLinearGradient(0,H*.82,0,H);
-  lakeGrad.addColorStop(0,lakeLvl>0?'rgba(0,80,180,.7)':'rgba(0,40,100,.5)');
-  lakeGrad.addColorStop(1,lakeLvl>0?'rgba(0,50,140,.9)':'rgba(0,20,60,.7)');
-  sctx.fillStyle=lakeGrad;sctx.fillRect(0,H*.82,W,H*.18);
-  if(lakeLvl>0){
-    sctx.strokeStyle='rgba(100,180,255,.3)';sctx.lineWidth=1;
-    for(let i=0;i<3;i++){sctx.beginPath();sctx.moveTo(0,H*(.84+i*.03));sctx.lineTo(W,H*(.84+i*.03));sctx.stroke();}
-  }
-
-  // FIELD — green grass
+  const skyline=[[0,.5],[.05,.35],[.08,.28],[.1,.35],[.15,.22],[.19,.3],[.23,.38],[.25,.25],[.29,.32],[.35,.42],[.38,.36],[.42,.38],[.45,.3],[.5,.38],[.5,.45],[1,.45],[1,.5]];
+  sctx.beginPath();skyline.forEach(([x,y],i)=>i===0?sctx.moveTo(x*W,y*H):sctx.lineTo(x*W,y*H));sctx.closePath();sctx.fill();
   const fieldY=H*.52,fieldH=H*.33;
-  const fGrad=sctx.createLinearGradient(0,fieldY,0,fieldY+fieldH);
-  fGrad.addColorStop(0,'#2a5a15');fGrad.addColorStop(1,'#1e4410');
+  const fGrad=sctx.createLinearGradient(0,fieldY,0,fieldY+fieldH);fGrad.addColorStop(0,'#2a5a15');fGrad.addColorStop(1,'#1e4410');
   sctx.fillStyle=fGrad;sctx.fillRect(W*.05,fieldY,W*.9,fieldH);
-  // Yard lines
   sctx.strokeStyle='rgba(255,255,255,.12)';sctx.lineWidth=1;
   for(let i=0;i<=10;i++){const x=W*.05+(W*.9*(i/10));sctx.beginPath();sctx.moveTo(x,fieldY);sctx.lineTo(x,fieldY+fieldH);sctx.stroke();}
-  // Bears logo center
-  sctx.fillStyle='rgba(200,56,3,.3)';sctx.font=`bold ${H*.2}px serif`;
-  sctx.textAlign='center';sctx.textBaseline='middle';
-  sctx.fillText('🐻',W/2,fieldY+fieldH*.5);
-
-  // SOUTH STANDS (bottom)
-  const sLvl=s['south_stands']||0;
-  if(sLvl>0){
-    const standH=H*.06+sLvl*H*.04;const standY=fieldY+fieldH;
-    const sg=sctx.createLinearGradient(0,standY,0,standY+standH);
-    sg.addColorStop(0,'rgba(11,22,42,.9)');sg.addColorStop(1,'rgba(20,35,65,.95)');
-    sctx.fillStyle=sg;sctx.fillRect(W*.05,standY,W*.9,standH);
-    sctx.strokeStyle='rgba(255,184,28,.5)';sctx.lineWidth=1.5;
-    sctx.strokeRect(W*.05,standY,W*.9,standH);
-    // Seat rows
-    for(let r=0;r<sLvl+1;r++){
-      const y2=standY+5+r*8;
-      for(let c=0;c<Math.floor(W*.9/8);c++){
-        sctx.fillStyle=c%3===0?'rgba(200,56,3,.7)':c%3===1?'rgba(11,22,42,.8)':'rgba(255,184,28,.4)';
-        sctx.fillRect(W*.05+c*8,y2,7,6);
-      }
-    }
-    if(sLvl>=3){
-      sctx.fillStyle='rgba(255,184,28,.5)';sctx.font=`bold ${H*.04}px Bebas Neue`;
-      sctx.textAlign='center';sctx.textBaseline='middle';
-      sctx.fillText('SOLDIER FIELD',W/2,standY+standH*.6);
-    }
-  }
-
-  // NORTH STANDS (top / above field)
-  const nLvl=s['north_stands']||0;
-  const northBase=fieldY-H*.02;
-  if(nLvl>0){
-    const standH=H*.05+nLvl*H*.04;const standY=northBase-standH;
-    const ng=sctx.createLinearGradient(0,standY,0,northBase);
-    ng.addColorStop(0,'rgba(20,35,65,.95)');ng.addColorStop(1,'rgba(11,22,42,.9)');
-    sctx.fillStyle=ng;sctx.fillRect(W*.05,standY,W*.9,standH);
-    sctx.strokeStyle='rgba(255,184,28,.5)';sctx.lineWidth=1.5;sctx.strokeRect(W*.05,standY,W*.9,standH);
-    for(let r=0;r<nLvl+1;r++){
-      const y2=standY+5+r*8;
-      for(let c=0;c<Math.floor(W*.9/8);c++){
-        sctx.fillStyle=c%3===0?'rgba(200,56,3,.7)':c%3===1?'rgba(11,22,42,.8)':'rgba(255,184,28,.4)';
-        sctx.fillRect(W*.05+c*8,y2,7,6);
-      }
-    }
-  }
-
-  // PRESS BOX / JUMBOTRON
-  const pbLvl=s['press_box']||0;
-  if(pbLvl>0){
-    const bx=W*.3,by=northBase-(nLvl>0?nLvl*H*.04+H*.05:0)-H*.04-H*.03*pbLvl;
-    const bw=W*.4,bh=H*.04+pbLvl*H*.025;
-    const pbg=sctx.createLinearGradient(0,by,0,by+bh);
-    pbg.addColorStop(0,'rgba(30,50,80,.95)');pbg.addColorStop(1,'rgba(15,25,45,.98)');
-    sctx.fillStyle=pbg;sctx.beginPath();sctx.roundRect(bx,by,bw,bh,3);sctx.fill();
-    sctx.strokeStyle='rgba(255,184,28,.7)';sctx.lineWidth=2;sctx.stroke();
-    if(pbLvl>=2){
-      sctx.fillStyle='rgba(0,0,0,.8)';sctx.fillRect(bx+4,by+3,bw-8,bh-6);
-      sctx.fillStyle='rgba(255,184,28,.7)';sctx.font=`bold ${H*.028}px Bebas Neue`;
-      sctx.textAlign='center';sctx.textBaseline='middle';
-      sctx.fillText('📺  JUMBOTRON',W/2,by+bh/2);
-    }
-  }
-
-  // CORNER CANNON TOWERS
-  const ctLvl=s['cannon_towers']||0;
-  if(ctLvl>0){
-    const pts=[[W*.05,fieldY],[W*.95,fieldY],[W*.05,fieldY+fieldH],[W*.95,fieldY+fieldH]];
-    pts.forEach(([cx2,cy2])=>{
-      sctx.fillStyle='rgba(60,15,15,.9)';sctx.beginPath();sctx.arc(cx2,cy2,H*.03,0,Math.PI*2);sctx.fill();
-      sctx.strokeStyle='rgba(255,100,0,.8)';sctx.lineWidth=2;sctx.stroke();
-      sctx.font=`${H*.04}px serif`;sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText('💣',cx2,cy2);
-    });
-  }
-
-  // BEAR STATUES
-  const bsLvl=s['bear_statues']||0;
-  if(bsLvl>0){
-    const bColor=bsLvl>=3?'rgba(200,160,0,.9)':bsLvl>=2?'rgba(180,180,180,.8)':'rgba(120,80,30,.8)';
-    [[W*.07,fieldY+fieldH*.5],[W*.93,fieldY+fieldH*.5]].forEach(([bx,by])=>{
-      sctx.fillStyle=bColor;sctx.beginPath();sctx.arc(bx,by,H*.025,0,Math.PI*2);sctx.fill();
-      sctx.strokeStyle=bsLvl>=3?'rgba(255,220,0,.9)':'rgba(255,255,255,.4)';sctx.lineWidth=1.5;sctx.stroke();
-      sctx.font=`${H*.04}px serif`;sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText('🐻',bx,by);
-    });
-  }
-
-  // HALL OF FAME (left wing)
-  const hofLvl=s['hall_of_fame']||0;
-  if(hofLvl>0){
-    const hx=W*.01,hy=fieldY+fieldH*.1;const hw=W*.04,hh=fieldH*.5*(hofLvl/4+.5);
-    const hg=sctx.createLinearGradient(hx,hy,hx+hw,hy);
-    hg.addColorStop(0,'rgba(40,30,5,.95)');hg.addColorStop(1,'rgba(60,45,8,.9)');
-    sctx.fillStyle=hg;sctx.fillRect(hx,hy,hw,hh);
-    sctx.strokeStyle='rgba(255,184,28,.6)';sctx.lineWidth=1.5;sctx.strokeRect(hx,hy,hw,hh);
-    sctx.font=`${H*.04}px serif`;sctx.textAlign='center';sctx.textBaseline='middle';
-    sctx.fillText('🏆',hx+hw/2,hy+hh/2);
-  }
-
-  // BEAR WALL
-  const bwLvl=s['bear_wall']||0;
-  if(bwLvl>0){
-    const wallThick=3+bwLvl*2;
-    sctx.strokeStyle=bwLvl>=3?'rgba(255,120,0,.8)':'rgba(180,100,30,.7)';
-    sctx.lineWidth=wallThick;
-    sctx.beginPath();
-    sctx.rect(W*.04,fieldY-H*.01,W*.92,fieldH+H*.02);
-    sctx.stroke();
-    if(bwLvl>=3){
-      sctx.shadowBlur=8;sctx.shadowColor='rgba(255,120,0,.5)';sctx.stroke();sctx.shadowBlur=0;
-    }
-  }
-
-  // MOAT
-  if((s['moat']||0)>0){
-    const moatColor='rgba(0,100,200,.35)';
-    sctx.fillStyle=moatColor;
-    sctx.fillRect(W*.04,fieldY+fieldH,W*.92,H*.025);
-    sctx.strokeStyle='rgba(100,180,255,.4)';sctx.lineWidth=1;
-    sctx.strokeRect(W*.04,fieldY+fieldH,W*.92,H*.025);
-  }
-
-  // Fog cannons effect
-  if((s['fog_cannons']||0)>=2){
-    const fGrad2=sctx.createRadialGradient(W/2,fieldY+fieldH*.5,0,W/2,fieldY+fieldH*.5,W*.4);
-    fGrad2.addColorStop(0,'transparent');fGrad2.addColorStop(1,'rgba(200,220,255,.06)');
-    sctx.fillStyle=fGrad2;sctx.fillRect(0,fieldY,W,fieldH);
-  }
-
-  // Legend Shrines
-  const shrineConfigs=[
-    {id:'payton_shrine',emoji:'💨',x:W*.18,y:fieldY+fieldH+H*.01},
-    {id:'urlacher_shrine',emoji:'🔥',x:W*.35,y:fieldY+fieldH+H*.01},
-    {id:'dent_shrine',emoji:'💥',x:W*.55,y:fieldY+fieldH+H*.01},
-    {id:'ditka_shrine',emoji:'🎯',x:W*.72,y:fieldY+fieldH+H*.01},
-  ];
-  shrineConfigs.forEach(({id,emoji,x,y})=>{
-    const sl=s[id]||0;if(!sl)return;
-    const glow=sctx.createRadialGradient(x,y,0,x,y,H*.04);
-    glow.addColorStop(0,'rgba(200,56,3,.5)');glow.addColorStop(1,'transparent');
-    sctx.fillStyle=glow;sctx.beginPath();sctx.arc(x,y,H*.04,0,Math.PI*2);sctx.fill();
-    sctx.font=`${H*.045}px serif`;sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText(emoji,x,y);
-    if(sl>=2){
-      sctx.strokeStyle='rgba(255,184,28,.6)';sctx.lineWidth=1.5;sctx.beginPath();sctx.arc(x,y,H*.025,0,Math.PI*2);sctx.stroke();
-    }
-  });
-
-  // TITLE OVERLAY
+  sctx.fillStyle='rgba(200,56,3,.3)';sctx.font=`bold ${H*.15}px serif`;sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText('\u{1F43B}',W/2,fieldY+fieldH*.5);
   sctx.fillStyle='rgba(0,0,0,.45)';sctx.fillRect(0,0,W,H*.25);
-  sctx.fillStyle='rgba(200,56,3,.9)';sctx.font=`bold ${H*.1}px Bebas Neue`;
-  sctx.textAlign='center';sctx.textBaseline='middle';
-  sctx.fillText('SOLDIER FIELD',W/2,H*.12);
-  sctx.fillStyle='rgba(255,184,28,.7)';sctx.font=`${H*.04}px Oswald`;
-  sctx.fillText('CHICAGO BEARS · FORTRESS SUPREME',W/2,H*.21);
+  sctx.fillStyle='rgba(200,56,3,.9)';sctx.font=`bold ${H*.1}px Bebas Neue`;sctx.textAlign='center';sctx.textBaseline='middle';sctx.fillText('SOLDIER FIELD',W/2,H*.12);
+  sctx.fillStyle='rgba(255,184,28,.7)';sctx.font=`${H*.04}px Oswald`;sctx.fillText('CHICAGO BEARS - FORTRESS SUPREME',W/2,H*.21);
 }
 
-// ── PERSISTENCE ───────────────────────────────────────────────
+// PERSISTENCE
 function saveStadium(){localStorage.setItem('bears_stadium',JSON.stringify({glory:SF.glory,totalGlory:SF.totalGlory,sections:SF.sections}));}
-function loadStadium(){const d=localStorage.getItem('bears_stadium');if(d){const p=JSON.parse(d);SF.glory=p.glory||0;SF.totalGlory=p.totalGlory||0;SF.sections=p.sections||{};}PERKS=computePerks();}
+function loadStadium(){const d=localStorage.getItem('bears_stadium');if(d){const p2=JSON.parse(d);SF.glory=p2.glory||0;SF.totalGlory=p2.totalGlory||0;SF.sections=p2.sections||{};}PERKS=computePerks();}
 
-// ── EVENTS ────────────────────────────────────────────────────
+// EVENTS
 canvas.addEventListener('touchstart',handleTap,{passive:false});
 canvas.addEventListener('click',handleTap);
 document.getElementById('canvas-container').addEventListener('touchmove',e=>e.preventDefault(),{passive:false});
 document.getElementById('tower-panel').addEventListener('touchmove',e=>e.stopPropagation(),{passive:true});
 window.addEventListener('resize',()=>{resizeCanvas();if(document.getElementById('stadium-screen').style.display==='flex')drawStadiumCanvas();});
 
-// ── INIT ──────────────────────────────────────────────────────
-loadStadium();loadBestScore();
-PERKS=computePerks();
+// INIT
+loadStadium();loadBestScore();PERKS=computePerks();
 </script>
 </body>
 </html>
