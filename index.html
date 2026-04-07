@@ -1142,69 +1142,201 @@ function updateShake(){
 // AAA RENDERING — FIELD WITH DYNAMIC GRASS & ATMOSPHERE
 // ============================================================
 function renderFieldToCache(){
-  // Render static field elements to offscreen canvas (only on dirty)
   const c=fieldCtx,ts=G.tileSize,W=canvas.width,H=canvas.height;
-  // Grass base — single fill, no gradient per frame
-  c.fillStyle='#2A5A1B';c.fillRect(0,0,W,H);
-  // Mowed stripe pattern — batched
-  c.fillStyle='rgba(0,0,0,.04)';
-  for(let col=0;col<G.cols;col++)for(let row=0;row<G.rows;row++){
-    if((col+row)%2===0)c.fillRect(col*ts,row*ts,ts,ts);
+  const fieldL=ts,fieldR=W-ts,fieldT=ts*2,fieldB=H-ts*2;
+  const fieldW=fieldR-fieldL,fieldH=fieldB-fieldT;
+
+  // === STADIUM SURROUND (dark stands around the field) ===
+  c.fillStyle='#0a0e1a';c.fillRect(0,0,W,H);
+
+  // North stands (top)
+  const northGrad=c.createLinearGradient(0,0,0,fieldT);
+  northGrad.addColorStop(0,'#060a14');northGrad.addColorStop(1,'#0d1525');
+  c.fillStyle=northGrad;c.fillRect(0,0,W,fieldT);
+  // Crowd silhouettes - rows of heads
+  for(let row=0;row<3;row++){
+    const ry=8+row*Math.floor(fieldT/4);
+    for(let cx=4;cx<W;cx+=7){
+      const hue=Math.random()>0.7?'rgba(200,56,3,.35)':'rgba(40,50,70,.7)';
+      c.fillStyle=hue;
+      c.beginPath();c.arc(cx+Math.random()*3,ry,2.5+Math.random(),Math.PI,0);c.fill();
+    }
   }
-  // Subtle grid — single path
-  c.strokeStyle='rgba(255,255,255,.025)';c.lineWidth=0.5;
-  c.beginPath();
-  for(let col=0;col<=G.cols;col++){c.moveTo(col*ts,0);c.lineTo(col*ts,H);}
-  for(let row=0;row<=G.rows;row++){c.moveTo(0,row*ts);c.lineTo(W,row*ts);}
-  c.stroke();
-  // Yard lines
-  const midRow=Math.floor(G.rows/2);
-  c.strokeStyle='rgba(255,255,255,.05)';c.lineWidth=2;
-  c.setLineDash([8,8]);c.beginPath();c.moveTo(0,midRow*ts);c.lineTo(W,midRow*ts);c.stroke();
-  c.setLineDash([]);
-  const q1Row=Math.floor(G.rows*0.25),q3Row=Math.floor(G.rows*0.75);
-  c.strokeStyle='rgba(255,255,255,.025)';c.lineWidth=1;c.setLineDash([4,8]);
-  c.beginPath();c.moveTo(0,q1Row*ts);c.lineTo(W,q1Row*ts);c.moveTo(0,q3Row*ts);c.lineTo(W,q3Row*ts);c.stroke();
-  c.setLineDash([]);
-  // Bears watermark
-  c.globalAlpha=0.035;c.font=`bold ${Math.min(ts*5,120)}px serif`;
-  c.textAlign='center';c.textBaseline='middle';c.fillStyle='#C83803';
-  c.fillText('\u{1F43B}',W/2,H/2);
-  c.globalAlpha=0.025;c.font=`bold ${Math.min(ts*2.5,60)}px Bebas Neue`;
-  c.fillStyle='#FFB81C';c.fillText('BEARS',W/2,H/2+Math.min(ts*3,70));
+
+  // South stands (bottom)
+  c.fillStyle='#0d1525';c.fillRect(0,fieldB,W,H-fieldB);
+  for(let row=0;row<3;row++){
+    const ry=fieldB+10+row*Math.floor((H-fieldB)/4);
+    for(let cx=4;cx<W;cx+=7){
+      const hue=Math.random()>0.7?'rgba(200,56,3,.35)':'rgba(40,50,70,.7)';
+      c.fillStyle=hue;
+      c.beginPath();c.arc(cx+Math.random()*3,ry,2.5+Math.random(),Math.PI,0);c.fill();
+    }
+  }
+
+  // Sideline stands (left & right)
+  c.fillStyle='#0a1020';
+  c.fillRect(0,fieldT,fieldL,fieldH);c.fillRect(fieldR,fieldT,W-fieldR,fieldH);
+  // Sideline crowd
+  for(let sy=fieldT+4;sy<fieldB;sy+=7){
+    c.fillStyle=Math.random()>0.6?'rgba(200,56,3,.3)':'rgba(40,50,70,.6)';
+    c.beginPath();c.arc(fieldL*0.4,sy,2,Math.PI,0);c.fill();
+    c.fillStyle=Math.random()>0.6?'rgba(200,56,3,.3)':'rgba(40,50,70,.6)';
+    c.beginPath();c.arc(fieldR+ts*0.6,sy,2,Math.PI,0);c.fill();
+  }
+
+  // Stadium railing/border
+  c.strokeStyle='rgba(255,184,28,.4)';c.lineWidth=2;
+  c.strokeRect(fieldL,fieldT,fieldW,fieldH);
+  // Sideline white lines
+  c.strokeStyle='rgba(255,255,255,.5)';c.lineWidth=2.5;
+  c.strokeRect(fieldL+2,fieldT+2,fieldW-4,fieldH-4);
+
+  // === NFL GRASS FIELD ===
+  // Base green
+  c.fillStyle='#2D6B1E';c.fillRect(fieldL,fieldT,fieldW,fieldH);
+
+  // Mowed stripe pattern (alternating light/dark every ~5 yard equivalent)
+  const stripeH=Math.max(ts,Math.floor(fieldH/12));
+  for(let i=0;i<Math.ceil(fieldH/stripeH);i++){
+    const sy=fieldT+i*stripeH;
+    c.fillStyle=i%2===0?'rgba(0,0,0,.04)':'rgba(255,255,255,.025)';
+    c.fillRect(fieldL,sy,fieldW,stripeH);
+  }
+
+  // Grass noise texture (per-cell hue variation)
+  const cellSize=6;
+  for(let cx=fieldL;cx<fieldR;cx+=cellSize){
+    for(let cy=fieldT;cy<fieldB;cy+=cellSize){
+      const noise=((cx*17+cy*31)%100)/100;
+      if(noise>0.6){
+        c.fillStyle=`rgba(${noise>0.8?'0,0,0':'60,120,30'},${0.02+noise*0.03})`;
+        c.fillRect(cx,cy,cellSize,cellSize);
+      }
+    }
+  }
+
+  // === YARD LINES, NUMBERS, HASH MARKS ===
+  const yardCount=12;// number of yard lines across field
+  c.textAlign='center';c.textBaseline='middle';
+
+  for(let i=0;i<=yardCount;i++){
+    const ly=fieldT+Math.round(fieldH*(i/yardCount));
+    // Main yard line
+    c.strokeStyle=i===0||i===yardCount?'rgba(255,255,255,.6)':'rgba(255,255,255,.25)';
+    c.lineWidth=i===0||i===yardCount||i===Math.floor(yardCount/2)?2:1;
+    c.beginPath();c.moveTo(fieldL+3,ly);c.lineTo(fieldR-3,ly);c.stroke();
+
+    // Yard numbers (positioned at sides)
+    if(i>0&&i<yardCount){
+      const yardNum=i<=yardCount/2?i*10:(yardCount-i)*10;
+      if(yardNum%10===0&&yardNum<=50){
+        c.fillStyle='rgba(255,255,255,.15)';
+        c.font=`bold ${Math.min(ts*0.7,18)}px Bebas Neue`;
+        c.fillText(yardNum.toString(),fieldL+ts*1.2,ly);
+        c.fillText(yardNum.toString(),fieldR-ts*1.2,ly);
+      }
+    }
+
+    // Hash marks (small ticks between yard lines)
+    if(i<yardCount){
+      for(let h=1;h<4;h++){
+        const hy=ly+Math.round(fieldH/yardCount*(h/4));
+        c.strokeStyle='rgba(255,255,255,.1)';c.lineWidth=1;
+        // Left hash
+        c.beginPath();c.moveTo(fieldL+fieldW*0.3,hy);c.lineTo(fieldL+fieldW*0.3+6,hy);c.stroke();
+        // Right hash
+        c.beginPath();c.moveTo(fieldR-fieldW*0.3-6,hy);c.lineTo(fieldR-fieldW*0.3,hy);c.stroke();
+      }
+    }
+  }
+
+  // 50-yard line (center) — thicker, more visible
+  const midY=fieldT+Math.round(fieldH/2);
+  c.strokeStyle='rgba(255,255,255,.35)';c.lineWidth=2.5;
+  c.beginPath();c.moveTo(fieldL+3,midY);c.lineTo(fieldR-3,midY);c.stroke();
+  // "50" number
+  c.fillStyle='rgba(255,255,255,.12)';
+  c.font=`bold ${Math.min(ts*1.2,28)}px Bebas Neue`;
+  c.fillText('50',fieldL+fieldW/2,midY);
+
+  // === END ZONES ===
+  // Top end zone (opponent)
+  const ezH=Math.round(fieldH*0.08);
+  c.fillStyle='rgba(50,60,80,.4)';c.fillRect(fieldL,fieldT,fieldW,ezH);
+  c.strokeStyle='rgba(255,255,255,.2)';c.lineWidth=1;
+  c.strokeRect(fieldL+1,fieldT+1,fieldW-2,ezH-2);
+  c.fillStyle='rgba(255,255,255,.08)';
+  c.font=`bold ${Math.min(ezH*0.6,16)}px Bebas Neue`;
+  c.fillText('VISITORS',fieldL+fieldW/2,fieldT+ezH/2);
+
+  // Bottom end zone (Bears!)
+  const ezBY=fieldB-ezH;
+  c.fillStyle='rgba(200,56,3,.25)';c.fillRect(fieldL,ezBY,fieldW,ezH);
+  c.strokeStyle='rgba(200,56,3,.3)';c.lineWidth=1;
+  c.strokeRect(fieldL+1,ezBY+1,fieldW-2,ezH-2);
+  c.fillStyle='rgba(200,56,3,.3)';
+  c.font=`bold ${Math.min(ezH*0.6,16)}px Bebas Neue`;
+  c.fillText('BEARS',fieldL+fieldW/2,ezBY+ezH/2);
+
+  // === CENTER FIELD BEARS LOGO ===
+  c.globalAlpha=0.05;c.font=`bold ${Math.min(fieldW*0.25,100)}px serif`;
+  c.fillStyle='#C83803';c.fillText('\u{1F43B}',fieldL+fieldW/2,fieldT+fieldH/2-10);
+  c.globalAlpha=0.035;c.font=`bold ${Math.min(fieldW*0.12,40)}px Bebas Neue`;
+  c.fillStyle='#FFB81C';c.fillText('CHICAGO BEARS',fieldL+fieldW/2,fieldT+fieldH/2+Math.min(fieldW*0.12,35));
   c.globalAlpha=1;
-  // Path — rendered once to cache
-  // Shadow for depth
-  c.fillStyle='rgba(0,0,0,.12)';
+
+  // === STADIUM LIGHT CONES (4 corners) ===
+  [[fieldL,fieldT],[fieldR,fieldT],[fieldL,fieldB],[fieldR,fieldB]].forEach(([lx,ly])=>{
+    const lg=c.createRadialGradient(lx,ly,0,lx,ly,Math.min(fieldW,fieldH)*0.4);
+    lg.addColorStop(0,'rgba(255,245,220,.06)');lg.addColorStop(1,'transparent');
+    c.fillStyle=lg;c.beginPath();c.arc(lx,ly,Math.min(fieldW,fieldH)*0.4,0,Math.PI*2);c.fill();
+  });
+
+  // === PATH (dirt trail across field) ===
+  // Path shadow
+  c.fillStyle='rgba(0,0,0,.15)';
   for(let i=0;i<G.path.length;i++){
     const{col,row}=G.path[i];c.fillRect(col*ts-1,row*ts-1,ts+2,ts+2);
   }
-  // Dirt fill — single color per tile, no gradient
+  // Worn grass path — darker green with brown tint
   for(let i=0;i<G.path.length;i++){
     const{col,row}=G.path[i];const x=col*ts,y=row*ts;
-    c.fillStyle=(i%2===0)?'#5C4A2E':'#544428';
+    // Trampled grass — brownish green
+    c.fillStyle=(i%3===0)?'#4A5A2A':(i%3===1)?'#3D4E24':'#445528';
     c.fillRect(x,y,ts,ts);
-    c.strokeStyle='rgba(200,56,3,.1)';c.lineWidth=1;c.strokeRect(x+1,y+1,ts-2,ts-2);
+    // Turf wear marks
+    c.fillStyle='rgba(90,70,40,.15)';
+    c.fillRect(x+ts*0.2,y+ts*0.2,ts*0.6,ts*0.6);
+    // Subtle border
+    c.strokeStyle='rgba(60,80,30,.2)';c.lineWidth=0.5;c.strokeRect(x+1,y+1,ts-2,ts-2);
   }
-  // End zone glow — single radial
+
+  // End zone goal marker
   const last=G.path[G.path.length-1];
   const lx=(last.col+.5)*ts,ly=(last.row+.5)*ts;
-  const ez=c.createRadialGradient(lx,ly,0,lx,ly,ts*3);
-  ez.addColorStop(0,'rgba(200,56,3,.35)');ez.addColorStop(1,'transparent');
+  const ez=c.createRadialGradient(lx,ly,0,lx,ly,ts*2.5);
+  ez.addColorStop(0,'rgba(200,56,3,.3)');ez.addColorStop(1,'transparent');
   c.fillStyle=ez;c.fillRect(lx-ts*3,ly-ts*3,ts*6,ts*6);
-  c.fillStyle='rgba(200,56,3,.5)';c.font=`bold ${ts*.5}px Bebas Neue`;
+  c.fillStyle='rgba(200,56,3,.45)';c.font=`bold ${ts*.45}px Bebas Neue`;
   c.textAlign='center';c.textBaseline='middle';
-  c.fillText('END ZONE',lx,ly);
+  c.fillText('\u{1F3C8} GOAL',lx,ly);
+
+  // === VIGNETTE (baked into cache) ===
+  const vg=c.createRadialGradient(W/2,H/2,Math.min(W,H)*0.3,W/2,H/2,Math.max(W,H)*0.7);
+  vg.addColorStop(0,'transparent');vg.addColorStop(1,'rgba(0,0,0,.3)');
+  c.fillStyle=vg;c.fillRect(0,0,W,H);
 }
 
 function renderField(){
-  // Blit cached field
   if(fieldDirty&&fieldCtx){renderFieldToCache();fieldDirty=false;}
   if(fieldCanvas)ctx.drawImage(fieldCanvas,0,0);
-  // Animated elements on top of cache: grass blades (batched, no save/restore)
+
+  // === ANIMATED ELEMENTS (drawn per frame on top of cache) ===
   const ts=G.tileSize,time=G.frameCount*0.02;
+
+  // Animated grass blades on field only (batched)
   ctx.lineCap='round';
-  // Batch grass by approximate color groups for fewer state changes
   const greens=['rgb(50,100,22)','rgb(60,110,28)','rgb(45,95,20)'];
   for(let gi=0;gi<3;gi++){
     ctx.strokeStyle=greens[gi];ctx.lineWidth=1;
@@ -1212,16 +1344,26 @@ function renderField(){
     for(let i=gi;i<G.grassBlades.length;i+=3){
       const blade=G.grassBlades[i];
       const col=Math.floor(blade.x/ts),row=Math.floor(blade.y/ts);
-      const k=`${col},${row}`;
-      if(G.pathSet.has(k)||G.placedSet.has(k))continue;
-      const sway=Math.sin(time*blade.speed+blade.phase)*2.5;
+      if(G.pathSet.has(`${col},${row}`)||G.placedSet.has(`${col},${row}`))continue;
+      // Only draw on field area
+      if(blade.x<ts||blade.x>canvas.width-ts||blade.y<ts*2||blade.y>canvas.height-ts*2)continue;
+      const sway=Math.sin(time*blade.speed+blade.phase)*2;
       ctx.moveTo(blade.x,blade.y);
       ctx.quadraticCurveTo(blade.x+sway*0.5,blade.y-blade.h*0.5,blade.x+sway,blade.y-blade.h);
     }
     ctx.stroke();
   }
-  // Direction arrows on path (animated) — lightweight
-  const arrowAlpha=0.18+Math.sin(G.frameCount*0.05)*0.1;
+
+  // Dust motes (atmospheric particles floating in stadium lights)
+  ctx.fillStyle='rgba(255,245,220,.12)';
+  for(let i=0;i<25;i++){
+    const mx=((G.frameCount*0.3+i*137)%canvas.width);
+    const my=((G.frameCount*0.15+i*89+Math.sin(G.frameCount*0.01+i)*20)%canvas.height);
+    ctx.beginPath();ctx.arc(mx,my,0.8+Math.sin(G.frameCount*0.02+i)*0.4,0,Math.PI*2);ctx.fill();
+  }
+
+  // Direction arrows on path (animated)
+  const arrowAlpha=0.2+Math.sin(G.frameCount*0.05)*0.1;
   ctx.strokeStyle=`rgba(200,56,3,${arrowAlpha})`;ctx.lineWidth=1.5;
   for(let i=1;i<G.path.length-1;i+=4){
     const prev=G.path[i-1],cur=G.path[i],next=G.path[i+1];
@@ -1236,6 +1378,18 @@ function renderField(){
     ctx.lineTo(cx2+ca*al*.4+sa*al*.4,cy2+sa*al*.4-ca*al*.4);
     ctx.stroke();
   }
+
+  // Crowd animation (subtle random movement every ~30 frames)
+  if(G.frameCount%30===0){
+    // Flicker a few crowd heads — drawn as overlay
+    ctx.fillStyle='rgba(200,56,3,.15)';
+    for(let i=0;i<5;i++){
+      const cx=Math.random()*canvas.width;
+      const cy=Math.random()>0.5?Math.random()*ts*2:canvas.height-ts*2+Math.random()*ts*2;
+      ctx.beginPath();ctx.arc(cx,cy,2,Math.PI,0);ctx.fill();
+    }
+  }
+
   renderStadiumOnField();
 }
 
@@ -1258,7 +1412,9 @@ function renderStadiumOnField(){
   const bsLvl=s['bear_statues']||0;
   if(bsLvl>0){[[12,H/2],[W-18,H/2]].forEach(([bx,by])=>{ctx.fillStyle=bsLvl>=3?'rgba(200,160,0,.8)':bsLvl>=2?'rgba(160,160,160,.8)':'rgba(120,80,30,.8)';ctx.beginPath();ctx.arc(bx,by,11,0,Math.PI*2);ctx.fill();ctx.strokeStyle=bsLvl>=3?'rgba(255,220,0,.9)':'rgba(255,255,255,.4)';ctx.lineWidth=2;ctx.stroke();});}
   const moatLvl=s['moat']||0;
-  if(moatLvl>0){const last=G.path[G.path.length-1];const mx=(last.col+.5)*ts,my=(last.row+.5)*ts;const moatGrad=ctx.createRadialGradient(mx,my,ts*.5,mx,my,ts*3);moatGrad.addColorStop(0,`rgba(0,100,200,${0.2+Math.sin(G.frameCount*0.03)*0.08})`);moatGrad.addColorStop(1,'transparent');ctx.fillStyle=moatGrad;ctx.fillRect(mx-ts*3,my-ts*3,ts*6,ts*6);}
+  if(moatLvl>0){const last=G.path[G.path.length-1];const mx=(last.col+.5)*ts,my=(last.row+.5)*ts;
+    ctx.fillStyle=`rgba(0,100,200,${0.1+Math.sin(G.frameCount*0.03)*0.05})`;
+    ctx.beginPath();ctx.arc(mx,my,ts*2.5,0,Math.PI*2);ctx.fill();}
 }
 
 function renderPlacementOverlay(){
@@ -1469,31 +1625,25 @@ function renderTowers(){
     const def=TOWER_DEFS.find(d=>d.id===t.type);if(!def)return;
     const x=t.x,y=t.y,r=ts*.42;
 
-    // Inspire aura
+    // Inspire aura — simple concentric rings (no gradient)
     if(def.special==='inspire'){
-      ctx.beginPath();ctx.arc(x,y,t.range,0,Math.PI*2);
-      const aGrad=ctx.createRadialGradient(x,y,0,x,y,t.range);
-      aGrad.addColorStop(0,'rgba(255,140,0,.06)');aGrad.addColorStop(0.7,'rgba(255,140,0,.03)');
-      aGrad.addColorStop(1,'rgba(255,140,0,.01)');
-      ctx.fillStyle=aGrad;ctx.fill();
-      // Animated aura ring
-      const auraPhase = (G.frameCount * 0.02) % 1;
-      ctx.beginPath();ctx.arc(x,y,t.range * auraPhase,0,Math.PI*2);
-      ctx.strokeStyle=`rgba(255,140,0,${0.15 * (1 - auraPhase)})`;ctx.lineWidth=2;ctx.stroke();
+      ctx.strokeStyle='rgba(255,140,0,.08)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(x,y,t.range,0,Math.PI*2);ctx.stroke();
+      ctx.beginPath();ctx.arc(x,y,t.range*0.6,0,Math.PI*2);ctx.stroke();
+      // Animated pulse ring
+      const auraPhase=(G.frameCount*0.02)%1;
+      ctx.strokeStyle=`rgba(255,140,0,${0.12*(1-auraPhase)})`;ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(x,y,t.range*auraPhase,0,Math.PI*2);ctx.stroke();
     }
 
-    // Reveal aura
+    // Reveal aura — radar sweep (no gradient)
     if(def.special==='reveal'){
-      ctx.beginPath();ctx.arc(x,y,t.range,0,Math.PI*2);
-      const rGrad=ctx.createRadialGradient(x,y,0,x,y,t.range);
-      rGrad.addColorStop(0,'rgba(0,212,255,.04)');rGrad.addColorStop(1,'rgba(0,212,255,.01)');
-      ctx.fillStyle=rGrad;ctx.fill();
-      // Radar sweep
-      const sweepAngle = (G.frameCount * 0.03) % (Math.PI * 2);
-      ctx.beginPath();ctx.moveTo(x,y);
-      ctx.arc(x,y,t.range,sweepAngle,sweepAngle+0.3);
-      ctx.closePath();
-      ctx.fillStyle='rgba(0,212,255,.08)';ctx.fill();
+      ctx.strokeStyle='rgba(0,212,255,.06)';ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(x,y,t.range,0,Math.PI*2);ctx.stroke();
+      // Radar sweep wedge
+      const sweepAngle=(G.frameCount*0.03)%(Math.PI*2);
+      ctx.fillStyle='rgba(0,212,255,.06)';
+      ctx.beginPath();ctx.moveTo(x,y);ctx.arc(x,y,t.range,sweepAngle,sweepAngle+0.3);ctx.closePath();ctx.fill();
     }
 
     // Selection range circle
@@ -1531,16 +1681,13 @@ function renderEnemies(){
     if(e.isStealth&&!revealSet.has(e.id)){ctx.globalAlpha=.12;}
     if(e.hitFlash>0){ctx.globalAlpha=Math.min(1,ctx.globalAlpha+.3);e.hitFlash--;}
 
-    // Boss aura with animated rings
+    // Boss aura — simple animated rings (no gradient)
     if(e.isBoss||e.isFinalBoss){
       const pulse2=.2+Math.sin(G.frameCount*.08)*.12;
-      // Outer glow
-      ctx.beginPath();ctx.arc(x,y,r+14,0,Math.PI*2);
-      const bossGrad=ctx.createRadialGradient(x,y,r,x,y,r+14);
-      const bossCol=e.isFinalBoss?'180,0,255':e.isElite?'255,120,0':'255,50,50';
-      bossGrad.addColorStop(0,`rgba(${bossCol},${pulse2*0.8})`);
-      bossGrad.addColorStop(1,`rgba(${bossCol},0)`);
-      ctx.fillStyle=bossGrad;ctx.fill();
+      const bossCol=e.isFinalBoss?'150,0,255':e.isElite?'255,120,0':'255,50,50';
+      // Outer glow ring
+      ctx.strokeStyle=`rgba(${bossCol},${pulse2*0.6})`;ctx.lineWidth=4;
+      ctx.beginPath();ctx.arc(x,y,r+12,0,Math.PI*2);ctx.stroke();
       // Pulsing ring
       const ringR = r + 8 + Math.sin(G.frameCount * 0.1) * 4;
       ctx.beginPath();ctx.arc(x,y,ringR,0,Math.PI*2);
@@ -1594,21 +1741,17 @@ function renderEnemies(){
       ctx.restore();
     }
 
-    // HP bar with smooth gradient
+    // HP bar — flat fill (no gradient, major perf win with many enemies)
     const hpW=r*2.6,hpH=e.isBoss?6:4;
     const hpX=x-hpW/2,hpY=y-r-(e.bossDisplayName?30:14);
-    ctx.fillStyle='rgba(0,0,0,.7)';
-    ctx.beginPath();ctx.roundRect(hpX-1,hpY-1,hpW+2,hpH+2,2);ctx.fill();
+    ctx.fillStyle='rgba(0,0,0,.65)';
+    ctx.fillRect(hpX-1,hpY-1,hpW+2,hpH+2);
     const pct=e.hp/e.maxHp;
-    const hpGrad=ctx.createLinearGradient(hpX,0,hpX+hpW*pct,0);
-    if(pct>.6){hpGrad.addColorStop(0,'#00DD55');hpGrad.addColorStop(1,'#00CC44');}
-    else if(pct>.3){hpGrad.addColorStop(0,'#FFCC00');hpGrad.addColorStop(1,'#FF9900');}
-    else{hpGrad.addColorStop(0,'#FF4400');hpGrad.addColorStop(1,'#FF2200');}
-    ctx.fillStyle=hpGrad;
-    ctx.beginPath();ctx.roundRect(hpX,hpY,hpW*pct,hpH,1);ctx.fill();
+    ctx.fillStyle=pct>.6?'#00CC44':pct>.3?'#FFAA00':'#FF2200';
+    ctx.fillRect(hpX,hpY,hpW*pct,hpH);
     // HP bar shine
-    ctx.fillStyle='rgba(255,255,255,.15)';
-    ctx.fillRect(hpX,hpY,hpW*pct,hpH/2);
+    ctx.fillStyle='rgba(255,255,255,.12)';
+    ctx.fillRect(hpX,hpY,hpW*pct,hpH*0.45);
 
     ctx.globalAlpha=1;
   });
@@ -2043,28 +2186,9 @@ function animateTitle(){
 function renderAtmosphere(){
   // Weather
   renderWeather();
-
   // Screen flash
   renderScreenFlash();
-
-  // Vignette
-  const vGrad=ctx.createRadialGradient(canvas.width/2,canvas.height/2,canvas.width*0.3,
-    canvas.width/2,canvas.height/2,canvas.width*0.8);
-  vGrad.addColorStop(0,'transparent');
-  vGrad.addColorStop(1,'rgba(0,0,0,.25)');
-  ctx.fillStyle=vGrad;ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  // Stadium lights glow
-  const lightGrad=ctx.createLinearGradient(0,0,0,canvas.height*0.3);
-  lightGrad.addColorStop(0,'rgba(255,240,200,.04)');lightGrad.addColorStop(1,'transparent');
-  ctx.fillStyle=lightGrad;ctx.fillRect(0,0,canvas.width,canvas.height*0.3);
-
-  // Light cones — simple corner overlays (skip per-frame gradient)
-  ctx.fillStyle='rgba(255,240,200,.015)';
-  ctx.fillRect(0,0,canvas.width*0.3,canvas.height*0.3);
-  ctx.fillRect(canvas.width*0.7,0,canvas.width*0.3,canvas.height*0.3);
-
-  // Weather tint overlay
+  // Vignette + lights are baked into field cache — only weather tint overlay here
   if(currentWeather==='heavy_rain'){
     ctx.fillStyle='rgba(30,40,60,.06)';ctx.fillRect(0,0,canvas.width,canvas.height);
   } else if(currentWeather==='snow'){
